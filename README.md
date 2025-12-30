@@ -80,7 +80,7 @@ ______________________________________________________________________
 - **SGR Concept Creator** // [@abdullin](https://t.me/llm_under_hood)
 - **Project Coordinator & Vision** // [@VaKovaLskii](https://t.me/neuraldeep)
 - **Lead Core Developer** // [@virrius](https://t.me/virrius_tech)
-- **API Development** // [Pavel Zloi](https://t.me/evilfreelancer)
+- **API Development** // [@EvilFreelancer](https://t.me/evilfreelancer)
 - **Hybrid FC research** // [@Shadekss](https://t.me/Shadekss)
 - **DevOps & Deployment** // [@mixaill76](https://t.me/mixaill76)
 

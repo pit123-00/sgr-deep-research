@@ -11,7 +11,7 @@ authors = [
     {name = "virrius"},
     {name = "VaKovaLskii"},
     {name = "abdullin"},
-    {name = "Pavel Zloi"},
+    {name = "EvilFreelancer"},
     {name = "Shadekss"},
     {name = "mixaill76"}
 ]
@@ -55,8 +55,8 @@ Issues = "https://github.com/vamplabAI/sgr-agent-core/issues"
 Documentation = "https://vamplabai.github.io/sgr-agent-core/"
 "SGR Concept Creator - @abdullin" = "https://t.me/llm_under_hood"
 "Project Coordinator - @VaKovaLskii" = "https://t.me/neuraldeep"
-"Lead Core Developer - @virrius" = "https://t.me/virrius_tech"
-"API Development - Pavel Zloi" = "https://t.me/evilfreelancer"
+"Core Developer - @virrius" = "https://t.me/virrius_tech"
+"Core Developer - @EvilFreelancer" = "https://t.me/evilfreelancer"
 "Hybrid FC Research - @Shadekss" = "https://t.me/Shadekss"
 "DevOps & Deployment - @mixaill76" = "https://t.me/mixaill76"
 

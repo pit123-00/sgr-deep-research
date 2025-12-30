@@ -4,6 +4,7 @@ from openai import AsyncOpenAI
 
 from sgr_agent_core.agent_definition import AgentConfig
 from sgr_agent_core.base_agent import BaseAgent
+from sgr_agent_core.next_step_tool import NextStepToolsBuilder
 from sgr_agent_core.tools import (
     BaseTool,
     NextStepToolStub,
@@ -32,6 +33,11 @@ class SGRAgent(BaseAgent):
             def_name=def_name,
             **kwargs,
         )
+
+    async def _prepare_tools(self) -> Type[NextStepToolStub]:
+        """Prepare available tools for the current agent state and progress."""
+        tools = set(self.toolkit)
+        return NextStepToolsBuilder.build_NextStepTools(list(tools))
 
     async def _reasoning_phase(self) -> NextStepToolStub:
         async with self.openai_client.chat.completions.stream(
