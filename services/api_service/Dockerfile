@@ -35,4 +35,4 @@ COPY --from=builder --chown=appuser:appgroup /opt/venv /opt/venv
 WORKDIR /app
 USER appuser:appgroup
 
-ENTRYPOINT ["sgr"]
+ENTRYPOINT ["python3", "-u", "sgr_agent_core/server/__main__.py"]
