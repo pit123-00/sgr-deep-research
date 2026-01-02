@@ -44,15 +44,15 @@ agents:
         deepwiki:
           url: "https://mcp.deepwiki.com/mcp"
 
-    # Tools this agent can use (must be registered in tool registry)
+    # Tools this agent can use (names from tools section in config)
     tools:
-      - "WebSearchTool"
-      - "ExtractPageContentTool"
-      - "CreateReportTool"
-      - "ClarificationTool"
-      - "GeneratePlanTool"
-      - "AdaptPlanTool"
-      - "FinalAnswerTool"
+      - "web_search_tool"
+      - "extract_page_content_tool"
+      - "create_report_tool"
+      - "clarification_tool"
+      - "generate_plan_tool"
+      - "adapt_plan_tool"
+      - "final_answer_tool"
 
   # Example 2: Minimal agent with defaults
   simple_agent:

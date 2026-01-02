@@ -6,7 +6,7 @@ from typing import ClassVar, Self
 import yaml
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
-from sgr_agent_core.agent_definition import AgentConfig, Definitions
+from sgr_agent_core.agent_definition import AgentConfig, Definitions, ToolDefinition
 
 logger = logging.getLogger(__name__)
 
@@ -36,28 +36,40 @@ class GlobalConfig(BaseSettings, AgentConfig, Definitions):
     @classmethod
     def from_yaml(cls, yaml_path: str) -> Self:
         yaml_path = Path(yaml_path)
-        sys.path.append(str(yaml_path.resolve().parent))
+        config_dir = yaml_path.resolve().parent
+        # Add both config_dir and its parent to sys.path to support package imports
+        # e.g., for config in examples/sgr_file_agent/config.yaml, we need both
+        # examples/sgr_file_agent and examples in sys.path
+        if str(config_dir) not in sys.path:
+            sys.path.insert(0, str(config_dir))
+        if str(config_dir.parent) not in sys.path:
+            sys.path.insert(0, str(config_dir.parent))
         if not yaml_path.exists():
             raise FileNotFoundError(f"Configuration file not found: {yaml_path}")
         config_data = yaml.safe_load(yaml_path.read_text(encoding="utf-8"))
         main_config_agents = config_data.pop("agents", {})
+        main_config_tools = config_data.pop("tools", {})
         if cls._instance is None:
             cls._instance = cls(
                 **config_data,
             )
         else:
             cls._initialized = False
-            cls._instance = cls(**config_data, agents=cls._instance.agents)
-        # agents should be initialized last to allow merging
-        cls._definitions_from_dict({"agents": main_config_agents})
+            cls._instance = cls(**config_data, agents=cls._instance.agents, tools=cls._instance.tools)
+        # agents and tools should be initialized last to allow merging
+        cls._definitions_from_dict({"agents": main_config_agents, "tools": main_config_tools}, config_dir)
         return cls._instance
 
     @classmethod
-    def _definitions_from_dict(cls, agents_data: dict) -> Self:
-        for agent_name, agent_config in agents_data.get("agents", {}).items():
+    def _definitions_from_dict(cls, data: dict, config_dir: Path | None = None) -> Self:
+        agents_data = data.get("agents", {})
+        tools_data = data.get("tools", {})
+
+        # Process agents
+        for agent_name, agent_config in agents_data.items():
             agent_config["name"] = agent_name
 
-        custom_agents = Definitions(**agents_data).agents
+        custom_agents = Definitions(agents=agents_data, tools={}).agents
 
         # Check for agents that will be overridden
         overridden = set(cls._instance.agents.keys()) & set(custom_agents.keys())
@@ -65,6 +77,26 @@ class GlobalConfig(BaseSettings, AgentConfig, Definitions):
             logger.warning(f"Loaded agents will override existing agents: " f"{', '.join(sorted(overridden))}")
 
         cls._instance.agents.update(custom_agents)
+
+        # Process tools
+        processed_tools = {}
+        for tool_name, tool_config in tools_data.items():
+            if tool_config is None:
+                tool_config = {}
+            if not isinstance(tool_config, dict):
+                raise ValueError(f"Tool '{tool_name}' must be a dictionary or null")
+            tool_config = tool_config.copy()  # Don't modify original
+            tool_config["name"] = tool_name
+            processed_tools[tool_name] = tool_config
+
+        custom_tools = Definitions(agents={}, tools=processed_tools).tools
+
+        # Check for tools that will be overridden
+        overridden_tools = set(cls._instance.tools.keys()) & set(custom_tools.keys())
+        if overridden_tools:
+            logger.warning(f"Loaded tools will override existing tools: " f"{', '.join(sorted(overridden_tools))}")
+
+        cls._instance.tools.update(custom_tools)
         return cls._instance
 
     @classmethod
@@ -88,8 +120,11 @@ class GlobalConfig(BaseSettings, AgentConfig, Definitions):
         if not agents_yaml_path.exists():
             raise FileNotFoundError(f"Agents definitions file not found: {agents_yaml_path}")
 
+        config_dir = agents_yaml_path.resolve().parent
         yaml_data = yaml.safe_load(agents_yaml_path.read_text(encoding="utf-8"))
-        if not yaml_data.get("agents"):
-            raise ValueError(f"Agents definitions file must contain 'agents' key: {agents_yaml_path}")
+        if not yaml_data.get("agents") and not yaml_data.get("tools"):
+            raise ValueError(
+                f"Agents definitions file must contain 'agents' or 'tools' key: {agents_yaml_path}"
+            )
 
-        return cls._definitions_from_dict(yaml_data)
+        return cls._definitions_from_dict(yaml_data, config_dir)

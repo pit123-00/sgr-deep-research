@@ -250,7 +250,7 @@ class TestAgentsLoadingOrder:
 
         # Use actual load_config() from __main__.py
         # Loading agents.yaml without 'agents' key should raise ValueError
-        with pytest.raises(ValueError, match="must contain 'agents' key"):
+        with pytest.raises(ValueError, match="must contain 'agents' or 'tools' key"):
             load_config(str(config_yaml), str(agents_yaml))
 
     def test_agents_yaml_error_logging(self, temp_dir, reset_global_config):
@@ -272,7 +272,7 @@ class TestAgentsLoadingOrder:
         # Mock logger to check if error is logged
         with patch("sgr_agent_core.server.__main__.logger") as mock_logger:
             # Use actual load_config() from __main__.py
-            with pytest.raises(ValueError, match="must contain 'agents' key"):
+            with pytest.raises(ValueError, match="must contain 'agents' or 'tools' key"):
                 load_config(str(config_yaml), str(agents_yaml))
 
             # Check that logger.error was called (only if try/except is uncommented)
