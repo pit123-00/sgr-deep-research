@@ -7,8 +7,8 @@ from typing import TYPE_CHECKING
 
 from pydantic import Field
 
-from sgr_agent_core.base_tool import BaseTool
 from sgr_agent_core.agent_definition import AgentConfig
+from sgr_agent_core.base_tool import BaseTool
 
 if TYPE_CHECKING:
     from sgr_agent_core.models import AgentContext
@@ -17,9 +17,10 @@ logger = logging.getLogger(__name__)
 
 
 class GetSystemPathsTool(BaseTool):
-    """Get standard system paths and user directories.
-    Use this tool to discover standard locations like home directory, documents, downloads, desktop, etc.
-    
+    """Get standard system paths and user directories. Use this tool to
+    discover standard locations like home directory, documents, downloads,
+    desktop, etc.
+
     Usage:
         - Find user's home directory
         - Discover standard folders (Documents, Downloads, Desktop)
@@ -30,16 +31,16 @@ class GetSystemPathsTool(BaseTool):
 
     async def __call__(self, context: AgentContext, config: AgentConfig, **kwargs) -> str:
         """Get system and user paths."""
-        
+
         logger.info("🗺️ Getting system paths")
-        
+
         try:
             result = "System Paths:\n\n"
-            
+
             home = Path.home()
             result += f"Home Directory: {home}\n"
             result += f"  Exists: {home.exists()}\n\n"
-            
+
             standard_dirs = {
                 "Desktop": home / "Desktop",
                 "Documents": home / "Documents",
@@ -48,7 +49,7 @@ class GetSystemPathsTool(BaseTool):
                 "Music": home / "Music",
                 "Videos": home / "Videos",
             }
-            
+
             result += "Standard User Directories:\n"
             for name, path in standard_dirs.items():
                 exists = path.exists()
@@ -59,22 +60,21 @@ class GetSystemPathsTool(BaseTool):
                         items = list(path.iterdir())
                         result += f"    Items: {len(items)}\n"
                     except PermissionError:
-                        result += f"    Items: (permission denied)\n"
-            
+                        result += "    Items: (permission denied)\n"
+
             result += f"\nCurrent Working Directory: {Path.cwd()}\n"
-            
-            result += f"\nEnvironment Variables:\n"
-            if os.name == 'posix':
+
+            result += "\nEnvironment Variables:\n"
+            if os.name == "posix":
                 result += f"  USER: {os.environ.get('USER', 'N/A')}\n"
                 result += f"  HOME: {os.environ.get('HOME', 'N/A')}\n"
-            elif os.name == 'nt':
+            elif os.name == "nt":
                 result += f"  USERNAME: {os.environ.get('USERNAME', 'N/A')}\n"
                 result += f"  USERPROFILE: {os.environ.get('USERPROFILE', 'N/A')}\n"
-            
+
             logger.debug(f"Home directory: {home}")
             return result
-            
+
         except Exception as e:
             logger.error(f"Error getting system paths: {e}")
             return f"Error getting system paths: {str(e)}"
-

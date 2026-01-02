@@ -344,7 +344,6 @@ class TestAgentFactoryClientCreation:
         """Test that additional parameters from LLMConfig (extra='allow') are
         passed to stream requests."""
         from sgr_agent_core.agents.tool_calling_agent import ToolCallingAgent
-        from sgr_agent_core.tools import ReasoningTool
 
         # Create LLMConfig with additional parameters for API requests
         llm_config = LLMConfig(
@@ -430,7 +429,6 @@ class TestAgentFactoryClientCreation:
         """Test that invalid/unsupported parameters raise TypeError when passed
         to stream requests."""
         from sgr_agent_core.agents.tool_calling_agent import ToolCallingAgent
-        from sgr_agent_core.tools import ReasoningTool
 
         # Create LLMConfig with invalid parameter (not supported by OpenAI API)
         llm_config = LLMConfig(

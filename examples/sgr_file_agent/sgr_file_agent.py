@@ -4,7 +4,6 @@ from openai import AsyncOpenAI
 
 from sgr_agent_core.agent_definition import AgentConfig
 from sgr_agent_core.agents.sgr_agent import SGRAgent
-from sgr_agent_core.models import AgentStatesEnum
 from sgr_agent_core.next_step_tool import NextStepToolsBuilder, NextStepToolStub
 from sgr_agent_core.tools import (
     BaseTool,
@@ -12,6 +11,7 @@ from sgr_agent_core.tools import (
     FinalAnswerTool,
     ReasoningTool,
 )
+
 from .tools import (
     FindFilesFastTool,
     GetCurrentDirectoryTool,
@@ -25,9 +25,9 @@ from .tools import (
 class SGRFileAgent(SGRAgent):
     """File-first agent that uses OpenAI native function calling to work with filesystem.
     Two-phase agent: reasoning phase + action phase.
-    
+
     Focus: File search and analysis (read-only operations)
-    
+
     Available file system tools (6 essential tools):
     - GetCurrentDirectoryTool: Get current working directory and context
     - GetSystemPathsTool: Get standard system paths (home, documents, downloads, desktop, etc.)
@@ -35,17 +35,17 @@ class SGRFileAgent(SGRAgent):
     - ListDirectoryTool: List directory contents with recursive option
     - SearchInFilesTool: Search text/code within files (grep-like functionality)
     - FindFilesFastTool: Universal file search using native find command (supports patterns, size, date filters)
-    
+
     All tools use native OS commands for optimal performance.
     Automatic filtering excludes cache dirs, node_modules, .git, etc.
-    
+
     Usage:
         # Via config file (recommended):
         # Set working_directory in config.yaml under agent definition:
         #   agents:
         #     sgr_file_agent:
         #       working_directory: "/path/to/work"
-        
+
         # Or programmatically:
         agent = SGRFileAgent(
             max_iterations=10,
@@ -79,7 +79,7 @@ class SGRFileAgent(SGRAgent):
         ]
         # Merge file system tools with provided toolkit
         merged_toolkit = file_system_tools + [t for t in toolkit if t not in file_system_tools]
-        
+
         super().__init__(
             task=task,
             openai_client=openai_client,
@@ -96,8 +96,9 @@ class SGRFileAgent(SGRAgent):
 
     async def _prepare_tools(self) -> Type[NextStepToolStub]:
         """Prepare available tools for current agent state and progress.
-        
-        Returns NextStepToolStub class for response_format, filtering tools based on agent state.
+
+        Returns NextStepToolStub class for response_format, filtering
+        tools based on agent state.
         """
         tools = set(self.toolkit)
         if self._context.iteration >= self.config.execution.max_iterations:

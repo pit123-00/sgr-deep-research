@@ -56,7 +56,7 @@ tools:
     # base_class defaults to sgr_agent_core.tools.ClarificationTool
   final_answer_tool:
     # base_class defaults to sgr_agent_core.tools.FinalAnswerTool
-  
+
   # File system tools - using relative imports (relative to config.yaml location)
   get_current_directory_tool:
     base_class: "tools.GetCurrentDirectoryTool"
@@ -88,7 +88,7 @@ agents:
       max_searches: 0  # File agent doesn't use web search
       logs_dir: "logs/file_agent"
       reports_dir: "reports/file_agent"
-    
+
     # Agent-specific parameters (for SGRFileAgent)
     working_directory: "."  # Working directory for file operations (default: current directory)
 

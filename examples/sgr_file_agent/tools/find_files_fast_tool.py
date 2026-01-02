@@ -7,8 +7,9 @@ from typing import TYPE_CHECKING
 
 from pydantic import Field
 
-from sgr_agent_core.base_tool import BaseTool
 from sgr_agent_core.agent_definition import AgentConfig
+from sgr_agent_core.base_tool import BaseTool
+
 from .file_filters import MAX_SEARCH_RESULTS
 
 if TYPE_CHECKING:
@@ -18,10 +19,10 @@ logger = logging.getLogger(__name__)
 
 
 class FindFilesFastTool(BaseTool):
-    """Fast file search using native 'find' command (Unix/Mac only).
-    Use this tool for efficient searching in large directories.
-    Much faster than Python's recursive search for large file systems.
-    
+    """Fast file search using native 'find' command (Unix/Mac only). Use this
+    tool for efficient searching in large directories. Much faster than
+    Python's recursive search for large file systems.
+
     Usage:
         - Search by name pattern (*.pdf, *.py)
         - Search by modification time (-mtime)
@@ -38,69 +39,75 @@ class FindFilesFastTool(BaseTool):
 
     async def __call__(self, context: AgentContext, config: AgentConfig, **kwargs) -> str:
         """Execute fast file search using native find command."""
-        
+
         logger.info(f"🚀 Fast find in {self.directory}")
-        
+
         try:
             search_path = Path(self.directory).expanduser()
-            
+
             if not search_path.exists():
                 return f"Error: Directory not found: {self.directory}"
-            
+
             if not search_path.is_dir():
                 return f"Error: Path is not a directory: {self.directory}"
-            
+
             # Build find command
-            cmd = ['find', str(search_path), '-maxdepth', str(self.max_depth), '-type', 'f']
-            
+            cmd = ["find", str(search_path), "-maxdepth", str(self.max_depth), "-type", "f"]
+
             # Add name pattern
             if self.name_pattern:
-                cmd.extend(['-name', self.name_pattern])
-            
+                cmd.extend(["-name", self.name_pattern])
+
             # Add modification time
             if self.modified_days is not None:
-                cmd.extend(['-mtime', f'-{self.modified_days}'])
-            
+                cmd.extend(["-mtime", f"-{self.modified_days}"])
+
             # Add size filter
             if self.min_size:
-                cmd.extend(['-size', f'+{self.min_size}'])
-            
+                cmd.extend(["-size", f"+{self.min_size}"])
+
             # Exclude common patterns
             exclude_patterns = [
-                'node_modules', '__pycache__', '.git', '.venv', 'venv',
-                '.cache', 'dist', 'build', '.idea', '.vscode'
+                "node_modules",
+                "__pycache__",
+                ".git",
+                ".venv",
+                "venv",
+                ".cache",
+                "dist",
+                "build",
+                ".idea",
+                ".vscode",
             ]
-            
+
             for pattern in exclude_patterns:
-                cmd.extend(['-not', '-path', f'*/{pattern}/*'])
-            
+                cmd.extend(["-not", "-path", f"*/{pattern}/*"])
+
             # Execute find command with timeout
             process = await asyncio.create_subprocess_exec(
-                *cmd,
-                stdout=asyncio.subprocess.PIPE,
-                stderr=asyncio.subprocess.PIPE
+                *cmd, stdout=asyncio.subprocess.PIPE, stderr=asyncio.subprocess.PIPE
             )
-            
+
             try:
                 stdout, stderr = await asyncio.wait_for(process.communicate(), timeout=30)
             except asyncio.TimeoutError:
                 process.kill()
                 return "Error: Search timed out after 30 seconds. Try searching in a more specific directory."
-            
+
             if process.returncode != 0:
-                stderr_text = stderr.decode('utf-8', errors='replace')
+                stderr_text = stderr.decode("utf-8", errors="replace")
                 return f"Error executing find command: {stderr_text}"
-            
+
             # Parse results
-            stdout_text = stdout.decode('utf-8', errors='replace')
-            files = [line.strip() for line in stdout_text.split('\n') if line.strip()]
-            
+            stdout_text = stdout.decode("utf-8", errors="replace")
+            files = [line.strip() for line in stdout_text.split("\n") if line.strip()]
+
             # Limit results
             total_files = len(files)
             if total_files > MAX_SEARCH_RESULTS:
                 files = files[:MAX_SEARCH_RESULTS]
-            
-            result = f"Fast Find Results:\n"
+
+            result = "Fast Find Results:\n"
             result += f"Directory: {self.directory}\n"
             if self.name_pattern:
                 result += f"Pattern: {self.name_pattern}\n"
@@ -110,16 +117,16 @@ class FindFilesFastTool(BaseTool):
                 result += f"Min size: {self.min_size}\n"
             result += f"Max depth: {self.max_depth}\n"
             result += f"Excluded: {', '.join(exclude_patterns[:5])}...\n\n"
-            
+
             if not files:
                 result += "No files found matching the criteria."
                 return result
-            
+
             if total_files > MAX_SEARCH_RESULTS:
                 result += f"Found {total_files} file(s), showing first {MAX_SEARCH_RESULTS}:\n\n"
             else:
                 result += f"Found {len(files)} file(s):\n\n"
-            
+
             for file_path in files:
                 try:
                     path = Path(file_path)
@@ -128,20 +135,19 @@ class FindFilesFastTool(BaseTool):
                     result += f"📄 {relative} ({self._format_size(size)})\n"
                 except Exception:
                     result += f"📄 {file_path}\n"
-            
+
             logger.info(f"Found {total_files} files")
             return result
-            
+
         except Exception as e:
             logger.error(f"Error in fast find: {e}")
             return f"Error: {str(e)}"
-    
+
     @staticmethod
     def _format_size(size_bytes: int) -> str:
         """Format size in human-readable format."""
-        for unit in ['B', 'KB', 'MB', 'GB']:
+        for unit in ["B", "KB", "MB", "GB"]:
             if size_bytes < 1024.0:
                 return f"{size_bytes:.1f} {unit}"
             size_bytes /= 1024.0
         return f"{size_bytes:.1f} TB"
-

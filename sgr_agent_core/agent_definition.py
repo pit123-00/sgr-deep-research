@@ -116,9 +116,10 @@ class ExecutionConfig(BaseModel, extra="allow"):
 class AgentConfig(BaseModel, extra="allow"):
     """Agent configuration with all settings.
 
-    The 'extra="allow"' allows additional fields for agent-specific parameters
-    (e.g., working_directory for file agents).
+    The 'extra="allow"' allows additional fields for agent-specific
+    parameters (e.g., working_directory for file agents).
     """
+
     llm: LLMConfig = Field(default_factory=LLMConfig, description="LLM settings")
     search: SearchConfig | None = Field(default=None, description="Search settings")
     execution: ExecutionConfig = Field(default_factory=ExecutionConfig, description="Execution settings")
@@ -139,9 +140,7 @@ class AgentDefinition(AgentConfig):
     name: str = Field(description="Unique agent name/ID")
     # ToDo: not sure how to type this properly and avoid circular imports
     base_class: type[Any] | ImportString | str = Field(description="Agent class name")
-    tools: list[str] = Field(
-        default_factory=list, description="List of tool names from tools section in config"
-    )
+    tools: list[str] = Field(default_factory=list, description="List of tool names from tools section in config")
 
     @field_validator("base_class", mode="before")
     def base_class_import_points_to_file(cls, v: Any) -> Any:
@@ -241,8 +240,9 @@ class ToolDefinition(BaseModel):
     def base_class_import_points_to_file(cls, v: Any) -> Any:
         """Ensure ImportString based base_class points to an existing file.
 
-        A dotted path indicates an import string (e.g., tools.ReadFileTool).
-        We use importlib to automatically search for the module in sys.path.
+        A dotted path indicates an import string (e.g.,
+        tools.ReadFileTool). We use importlib to automatically search
+        for the module in sys.path.
         """
         if isinstance(v, str) and "." in v:
             module_parts = v.split(".")
@@ -268,6 +268,7 @@ class ToolDefinition(BaseModel):
         # Only validate if it's already a class
         if inspect.isclass(v):
             from sgr_agent_core.base_tool import BaseTool
+
             if not issubclass(v, BaseTool):
                 raise TypeError("Imported base_class must be a subclass of BaseTool")
         return v
@@ -281,6 +282,4 @@ class Definitions(BaseModel):
     agents: dict[str, AgentDefinition] = Field(
         default_factory=dict, description="Dictionary of agent definitions by name"
     )
-    tools: dict[str, ToolDefinition] = Field(
-        default_factory=dict, description="Dictionary of tool definitions by name"
-    )
+    tools: dict[str, ToolDefinition] = Field(default_factory=dict, description="Dictionary of tool definitions by name")

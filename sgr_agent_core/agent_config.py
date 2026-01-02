@@ -6,7 +6,7 @@ from typing import ClassVar, Self
 import yaml
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
-from sgr_agent_core.agent_definition import AgentConfig, Definitions, ToolDefinition
+from sgr_agent_core.agent_definition import AgentConfig, Definitions
 
 logger = logging.getLogger(__name__)
 
@@ -123,8 +123,6 @@ class GlobalConfig(BaseSettings, AgentConfig, Definitions):
         config_dir = agents_yaml_path.resolve().parent
         yaml_data = yaml.safe_load(agents_yaml_path.read_text(encoding="utf-8"))
         if not yaml_data.get("agents") and not yaml_data.get("tools"):
-            raise ValueError(
-                f"Agents definitions file must contain 'agents' or 'tools' key: {agents_yaml_path}"
-            )
+            raise ValueError(f"Agents definitions file must contain 'agents' or 'tools' key: {agents_yaml_path}")
 
         return cls._definitions_from_dict(yaml_data, config_dir)

@@ -5,6 +5,7 @@ File system agent for SGR Agent Core. This agent specializes in file search, rea
 ## Description
 
 SGR File Agent is a specialized agent that works with the filesystem. It provides read-only operations for:
+
 - Finding files by pattern, size, or modification date
 - Reading file contents
 - Listing directories
@@ -56,10 +57,13 @@ config = GlobalConfig.from_yaml(str(config_path))
 # Get agent definition
 agent_def = config.agents["sgr_file_agent"]
 
+
 # Create and run agent
 async def main():
-    agent = await AgentFactory.create(agent_def, task="Find all Python files in the project")
-    
+    agent = await AgentFactory.create(
+        agent_def, task="Find all Python files in the project"
+    )
+
     # working_directory is automatically set from config if specified
     print(f"Working directory: {agent.working_directory}")
 
@@ -68,6 +72,7 @@ async def main():
 
     result = await agent.execute()
     print(f"\n\nFinal result: {result}")
+
 
 asyncio.run(main())
 ```
@@ -86,7 +91,12 @@ client = OpenAI(
 
 response = client.chat.completions.create(
     model="sgr_file_agent",
-    messages=[{"role": "user", "content": "Find all PDF files in my Downloads folder from last week"}],
+    messages=[
+        {
+            "role": "user",
+            "content": "Find all PDF files in my Downloads folder from last week",
+        }
+    ],
     stream=True,
 )
 
@@ -123,11 +133,11 @@ tools:
   # Core tools (base_class defaults to sgr_agent_core.tools.*)
   reasoning_tool:
     # base_class defaults to sgr_agent_core.tools.ReasoningTool
-  
+
   # Custom tools with relative imports (relative to config.yaml location)
   read_file_tool:
     base_class: "tools.ReadFileTool"  # Resolves to examples/sgr_file_agent/tools/ReadFileTool
-  
+
   # Custom tools with absolute imports
   custom_tool:
     base_class: "examples.sgr_file_agent.tools.CustomTool"
@@ -136,6 +146,7 @@ tools:
 ### Tool Name to Class Name Mapping
 
 If `base_class` is not specified, the system automatically generates:
+
 - `reasoning_tool` → `sgr_agent_core.tools.ReasoningTool`
 - `read_file_tool` → `sgr_agent_core.tools.ReadFileTool`
 - `web_search_tool` → `sgr_agent_core.tools.WebSearchTool`
@@ -156,7 +167,7 @@ agents:
       - "reasoning_tool"
       - "read_file_tool"
       - "find_files_fast_tool"
-    
+
     # Agent-specific parameters
     working_directory: "/path/to/work/dir"  # Optional: working directory for file operations
 ```
@@ -173,4 +184,3 @@ SGR File Agent supports additional parameters that can be set in the config:
 - Automatic filtering excludes cache dirs, node_modules, .git, etc.
 - Tools use native OS commands for optimal performance
 - The agent doesn't use web search (max_searches: 0)
-
