@@ -70,10 +70,11 @@ class TestAgentFactory:
                 },
                 execution={},
             )
-            agent = await AgentFactory.create(agent_def, task="Test task")
+            agent = await AgentFactory.create(agent_def, task_messages=[{"role": "user", "content": "Test task"}])
 
             assert isinstance(agent, SGRAgent)
-            assert agent.task == "Test task"
+            assert len(agent.task_messages) == 1
+            assert agent.task_messages[0]["content"] == "Test task"
             assert agent.name == "sgr_agent"
 
     @pytest.mark.asyncio
@@ -103,10 +104,11 @@ class TestAgentFactory:
                     },
                     execution={},
                 )
-                agent = await AgentFactory.create(agent_def, task=task)
+                agent = await AgentFactory.create(agent_def, task_messages=[{"role": "user", "content": task}])
 
                 assert isinstance(agent, BaseAgent)
-                assert agent.task == task
+                assert len(agent.task_messages) == 1
+                assert agent.task_messages[0]["content"] == task
                 assert agent.name == agent_class.name
 
     @pytest.mark.asyncio
@@ -128,9 +130,10 @@ class TestAgentFactory:
                 },
                 execution={"max_clarifications": 5, "max_iterations": 15, "max_searches": 10},
             )
-            agent = await AgentFactory.create(agent_def, task="Custom task")
+            agent = await AgentFactory.create(agent_def, task_messages=[{"role": "user", "content": "Custom task"}])
 
-            assert agent.task == "Custom task"
+            assert len(agent.task_messages) == 1
+            assert agent.task_messages[0]["content"] == "Custom task"
             assert agent.config.execution.max_clarifications == 5
             assert agent.config.execution.max_iterations == 15
             assert agent.config.execution.max_searches == 10
@@ -154,7 +157,7 @@ class TestAgentFactory:
                 },
                 execution={},
             )
-            agent = await AgentFactory.create(agent_def, task="Test")
+            agent = await AgentFactory.create(agent_def, task_messages=[{"role": "user", "content": "Test"}])
 
             # Should have tool_choice property for tool calling agents
             if hasattr(agent, "tool_choice"):
@@ -183,9 +186,12 @@ class TestConfigurationBasedAgentCreation:
                 },
                 execution={},
             )
-            agent = await AgentFactory.create(agent_def, task="Test config integration")
+            agent = await AgentFactory.create(
+                agent_def, task_messages=[{"role": "user", "content": "Test config integration"}]
+            )
 
-            assert agent.task == "Test config integration"
+            assert len(agent.task_messages) == 1
+            assert agent.task_messages[0]["content"] == "Test config integration"
             assert agent.name == "sgr_agent"
 
     def test_agent_name_consistency(self):
@@ -227,12 +233,13 @@ class TestConfigurationBasedAgentCreation:
                     },
                     execution={},
                 )
-                agent = await AgentFactory.create(agent_def, task=tasks[i])
+                agent = await AgentFactory.create(agent_def, task_messages=[{"role": "user", "content": tasks[i]}])
                 agents.append(agent)
 
             # Verify all agents are independent
             for i, agent in enumerate(agents):
-                assert agent.task == tasks[i]
+                assert len(agent.task_messages) == 1
+                assert agent.task_messages[0]["content"] == tasks[i]
                 assert agent.id != agents[(i + 1) % len(agents)].id  # Different IDs
 
             # Verify different types
@@ -262,9 +269,10 @@ class TestAgentCreationEdgeCases:
                 },
                 execution={},
             )
-            agent = await AgentFactory.create(agent_def, task="")
+            agent = await AgentFactory.create(agent_def, task_messages=[{"role": "user", "content": ""}])
 
-            assert agent.task == ""
+            assert len(agent.task_messages) == 1
+            assert agent.task_messages[0]["content"] == ""
             assert agent.name == "sgr_agent"
 
     @pytest.mark.asyncio
@@ -291,7 +299,7 @@ class TestAgentCreationEdgeCases:
                 },
                 execution={},
             )
-            agent = await AgentFactory.create(agent_def, task="Test")
+            agent = await AgentFactory.create(agent_def, task_messages=[{"role": "user", "content": "Test"}])
 
             # Verify custom tool was added to toolkit
             assert CustomTool in agent.toolkit
@@ -405,7 +413,7 @@ class TestAgentFactoryClientCreation:
         ) as mock_stream_method:
             # Create agent with real client
             agent = ToolCallingAgent(
-                task="Test task",
+                task_messages=[{"role": "user", "content": "Test task"}],
                 openai_client=real_client,
                 agent_config=AgentDefinition(
                     name="test_agent",
@@ -449,7 +457,7 @@ class TestAgentFactoryClientCreation:
 
         # Create agent with invalid parameter
         agent = ToolCallingAgent(
-            task="Test task",
+            task_messages=[{"role": "user", "content": "Test task"}],
             openai_client=real_client,
             agent_config=AgentDefinition(
                 name="test_agent",
@@ -489,10 +497,11 @@ class TestAgentFactoryRegistryIntegration:
                 },
                 execution={},
             )
-            agent = await AgentFactory.create(agent_def, task="Test task")
+            agent = await AgentFactory.create(agent_def, task_messages=[{"role": "user", "content": "Test task"}])
 
             assert isinstance(agent, SGRAgent)
-            assert agent.task == "Test task"
+            assert len(agent.task_messages) == 1
+            assert agent.task_messages[0]["content"] == "Test task"
 
     @pytest.mark.asyncio
     async def test_create_agent_with_string_tool(self):
@@ -514,7 +523,7 @@ class TestAgentFactoryRegistryIntegration:
                 },
                 execution={},
             )
-            agent = await AgentFactory.create(agent_def, task="Test task")
+            agent = await AgentFactory.create(agent_def, task_messages=[{"role": "user", "content": "Test task"}])
 
             assert isinstance(agent, SGRAgent)
             # Verify that ReasoningTool was resolved from string and added to toolkit
@@ -545,7 +554,7 @@ class TestAgentFactoryRegistryIntegration:
                 },
                 execution={},
             )
-            agent = await AgentFactory.create(agent_def, task="Test task")
+            agent = await AgentFactory.create(agent_def, task_messages=[{"role": "user", "content": "Test task"}])
 
             # Verify that both tools were resolved and added to toolkit
             # Note: SGRAgent may transform toolkit, so we check that toolkit contains expected tools
@@ -579,7 +588,7 @@ class TestAgentFactoryErrorHandling:
             )
 
             with pytest.raises(ValueError, match="Agent base class 'nonexistent_agent' not found"):
-                await AgentFactory.create(agent_def, task="Test task")
+                await AgentFactory.create(agent_def, task_messages=[{"role": "user", "content": "Test task"}])
 
     @pytest.mark.asyncio
     async def test_create_agent_with_invalid_tool_string(self):
@@ -600,9 +609,8 @@ class TestAgentFactoryErrorHandling:
                 },
                 execution={},
             )
-
             with pytest.raises(ValueError, match="Tool 'nonexistent_tool' not found"):
-                await AgentFactory.create(agent_def, task="Test task")
+                await AgentFactory.create(agent_def, task_messages=[{"role": "user", "content": "Test task"}])
 
     @pytest.mark.asyncio
     async def test_create_agent_with_agent_creation_exception(self):
@@ -626,7 +634,7 @@ class TestAgentFactoryErrorHandling:
             )
 
             with pytest.raises(ValueError, match="Failed to create agent"):
-                await AgentFactory.create(agent_def, task="Test task")
+                await AgentFactory.create(agent_def, task_messages=[{"role": "user", "content": "Test task"}])
 
 
 class TestAgentFactoryMCPIntegration:
@@ -661,7 +669,7 @@ class TestAgentFactoryMCPIntegration:
                 },
                 execution={},
             )
-            agent = await AgentFactory.create(agent_def, task="Test task")
+            agent = await AgentFactory.create(agent_def, task_messages=[{"role": "user", "content": "Test task"}])
 
             assert MockMCPTool in agent.toolkit
             # SGRAgent transforms toolkit, so check that toolkit is not empty and contains expected tools
@@ -702,7 +710,7 @@ class TestAgentFactoryMCPIntegration:
                 },
                 execution={},
             )
-            agent = await AgentFactory.create(agent_def, task="Test task")
+            agent = await AgentFactory.create(agent_def, task_messages=[{"role": "user", "content": "Test task"}])
 
             assert MockMCPTool1 in agent.toolkit
             assert MockMCPTool2 in agent.toolkit
