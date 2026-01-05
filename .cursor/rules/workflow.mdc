@@ -1,0 +1,280 @@
+---
+description: Workflow rules for bug fixes, new features, and testing
+globs: **/*.py, tests/**/*.py
+alwaysApply: true
+---
+
+# Workflow Rules for Bug Fixes and New Features
+
+## Virtual Environment
+
+**IMPORTANT**: Virtual environment is located in `.venv` directory. Always activate it before running tests or commands:
+
+**Linux/macOS:**
+```bash
+source .venv/bin/activate
+```
+
+**Windows (PowerShell):**
+```powershell
+.venv\Scripts\Activate.ps1
+```
+
+**Windows (CMD):**
+```cmd
+.venv\Scripts\activate.bat
+```
+
+**Windows (Git Bash/WSL):**
+```bash
+source .venv/Scripts/activate
+```
+
+## New Features (TDD Approach)
+
+### Mandatory Workflow for New Features
+
+**CRITICALLY IMPORTANT**: When user asks to implement a new feature (using words "фича", "feature", "новая функция", "добавить", "implement", "add"), **always** apply TDD approach and follow this strict workflow:
+
+**Do not skip any step!** Always follow order: write test (red) → verify test fails → implement feature → test (green) → run all tests → run linter → report.
+
+### Step-by-step Process for New Features
+
+1. **Write test first**
+   - Create test in corresponding file `tests/test_*.py`
+   - Test must **fail** (red) because feature doesn't exist yet
+   - Test must clearly describe expected behavior
+   - Make sure test actually fails for the right reason
+   - Run test:
+     - **Linux/macOS**: `source .venv/bin/activate && pytest tests/test_*.py::test_name -v`
+     - **Windows**: `.venv\Scripts\activate && pytest tests/test_*.py::test_name -v`
+
+2. **Verify test fails**
+   - Run new test:
+     - **Linux/macOS**: `source .venv/bin/activate && pytest tests/test_*.py::test_name -v`
+     - **Windows**: `.venv\Scripts\activate && pytest tests/test_*.py::test_name -v`
+   - Test must **fail** (red) - this confirms test is correct
+   - If test passes unexpectedly, review test logic
+
+3. **Implement feature**
+   - Write code that implements new feature
+   - Follow rules from @code-style.mdc and @architecture.mdc
+   - Use @implementation-order.mdc if adding new classes
+   - Implement one class/module at a time
+
+4. **Verify feature works**
+   - Run new test:
+     - **Linux/macOS**: `source .venv/bin/activate && pytest tests/test_*.py::test_name -v`
+     - **Windows**: `.venv\Scripts\activate && pytest tests/test_*.py::test_name -v`
+   - Test must **pass** (green)
+   - Make sure feature works as expected
+
+5. **Run all tests**
+   - Execute full test suite:
+     - **Linux/macOS**: `source .venv/bin/activate && pytest tests/ -v`
+     - **Windows**: `.venv\Scripts\activate && pytest tests/ -v`
+   - Make sure **all tests are green**
+   - If there are failing tests - fix them before proceeding
+
+6. **Run linter**
+   - Execute linter:
+     - **Linux/macOS**: `source .venv/bin/activate && pre-commit run -a`
+     - **Windows**: `.venv\Scripts\activate && pre-commit run -a`
+   - Fix all linting errors
+   - Make sure linter passes completely
+   - If there are errors, fix them and repeat step 6
+
+7. **Write report**
+   - Brief report of work done
+   - What feature was implemented
+   - Which tests were added/changed
+   - Test run results
+   - Linter results
+
+### Report Structure Example for New Features
+
+```markdown
+## Feature: [brief description]
+
+### Implementation
+1. Added test `test_new_feature` in `tests/test_module.py` (initially red)
+2. Implemented `new_method` in `sgr_agent_core/module.py`
+3. Ran new test - passed (green)
+4. Ran all tests - all green (239 passed)
+5. Ran linter - all checks passed
+
+### Changed Files
+- `sgr_agent_core/module.py` - added new_method implementation
+- `tests/test_module.py` - added test_new_feature test
+```
+
+## Bug Fixes (TDD Approach)
+
+### Mandatory Workflow for Bug Fixes
+
+**CRITICALLY IMPORTANT**: When user asks to fix a bug (using words "баг", "bug", "ошибка", "error", "исправить", "fix"), **always** apply TDD approach and follow this strict workflow:
+
+**Do not skip any step!** Always follow order: test (red) → fix → test (green) → all tests → run linter → report.
+
+### Step-by-step Process for Bug Fixes
+
+1. **Write test reproducing bug**
+   - Create test in corresponding file `tests/test_*.py`
+   - Test must **fail** (red) and reproduce bug
+   - Make sure error actually exists
+   - Run test:
+     - **Linux/macOS**: `source .venv/bin/activate && pytest tests/test_*.py::test_name -v`
+     - **Windows**: `.venv\Scripts\activate && pytest tests/test_*.py::test_name -v`
+
+2. **Fix code**
+   - Write code that fixes bug
+   - Follow rules from @code-style.mdc and @architecture.mdc
+   - Make minimal changes needed to fix the bug
+
+3. **Verify fix**
+   - Run new test:
+     - **Linux/macOS**: `source .venv/bin/activate && pytest tests/test_*.py::test_name -v`
+     - **Windows**: `.venv\Scripts\activate && pytest tests/test_*.py::test_name -v`
+   - Test must **pass** (green)
+   - Make sure bug is fixed
+
+4. **Run all tests**
+   - Execute full run:
+     - **Linux/macOS**: `source .venv/bin/activate && pytest tests/ -v`
+     - **Windows**: `.venv\Scripts\activate && pytest tests/ -v`
+   - Make sure **all tests are green**
+   - If there are failing tests - fix them
+
+5. **Run linter**
+   - Execute linter:
+     - **Linux/macOS**: `source .venv/bin/activate && pre-commit run -a`
+     - **Windows**: `.venv\Scripts\activate && pre-commit run -a`
+   - Fix all linting errors
+   - Make sure linter passes completely
+   - If there are errors, fix them and repeat step 5
+
+6. **Write report**
+   - Brief report of work done
+   - What was fixed
+   - Which tests were added/changed
+   - Test run results
+   - Linter results
+
+### Report Structure Example for Bug Fixes
+
+```markdown
+## Bug Fix: [brief description]
+
+### Problem
+[Bug description]
+
+### Solution
+1. Added test `test_bug_reproduction` in `tests/test_module.py` (initially red)
+2. Fixed method `method_name` in `sgr_agent_core/module.py`
+3. Ran new test - passed (green)
+4. Ran all tests - all green (239 passed)
+5. Ran linter - all checks passed
+
+### Changed Files
+- `sgr_agent_core/module.py` - fixed processing logic
+- `tests/test_module.py` - added test for bug
+```
+
+## Final Verification Before Reporting
+
+**MANDATORY**: Before writing final report for any work (bug fix or new feature), **always** complete these steps:
+
+1. **Run all tests**:
+   - **Linux/macOS**: `source .venv/bin/activate && pytest tests/ -v`
+   - **Windows**: `.venv\Scripts\activate && pytest tests/ -v`
+   - All tests must pass (green)
+   - No test failures allowed
+
+2. **Run linter**:
+   - **Linux/macOS**: `source .venv/bin/activate && pre-commit run -a`
+   - **Windows**: `.venv\Scripts\activate && pre-commit run -a`
+   - All linting checks must pass
+   - Fix all errors and warnings
+   - Repeat until all checks pass
+
+3. **Only then write report**
+   - Report must include test results
+   - Report must include linter results
+   - Report must confirm all checks passed
+
+## Testing Commands Reference
+
+### Linux/macOS
+```bash
+# Activate virtual environment
+source .venv/bin/activate
+
+# Run all tests
+pytest tests/ -v
+
+# Run specific test
+pytest tests/test_module.py::TestClass::test_method -v
+
+# Run with coverage
+pytest tests/ --cov=sgr_agent_core --cov-report=term-missing
+
+# Run linter
+pre-commit run -a
+
+# Run both tests and linter
+pytest tests/ -v && pre-commit run -a
+```
+
+### Windows (PowerShell/CMD)
+```powershell
+# Activate virtual environment (PowerShell)
+.venv\Scripts\Activate.ps1
+
+# Activate virtual environment (CMD)
+.venv\Scripts\activate.bat
+
+# Run all tests
+pytest tests/ -v
+
+# Run specific test
+pytest tests/test_module.py::TestClass::test_method -v
+
+# Run with coverage
+pytest tests/ --cov=sgr_agent_core --cov-report=term-missing
+
+# Run linter
+pre-commit run -a
+
+# Run both tests and linter (PowerShell)
+pytest tests/ -v; if ($?) { pre-commit run -a }
+
+# Run both tests and linter (CMD)
+pytest tests/ -v && pre-commit run -a
+```
+
+### Windows (Git Bash/WSL)
+```bash
+# Activate virtual environment
+source .venv/Scripts/activate
+
+# Run all tests
+pytest tests/ -v
+
+# Run specific test
+pytest tests/test_module.py::TestClass::test_method -v
+
+# Run with coverage
+pytest tests/ --cov=sgr_agent_core --cov-report=term-missing
+
+# Run linter
+pre-commit run -a
+
+# Run both tests and linter
+pytest tests/ -v && pre-commit run -a
+```
+
+## References
+
+@testing.mdc
+@code-style.mdc
+@architecture.mdc

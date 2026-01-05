@@ -1,0 +1,169 @@
+---
+description: Rules for core modules of SGR Agent Core
+globs: sgr_agent_core/**/*.py
+alwaysApply: true
+---
+
+# Rules for Core Modules
+
+## Base Classes
+
+### BaseAgent (`sgr_agent_core/base_agent.py`)
+- Parent class for all agents
+- Implements two-phase execution cycle: Reasoning → Action
+- Manages agent context, conversation history, and streaming
+- Must be subclassed to implement `_reasoning_phase()`, `_select_action_phase()`, `_action_phase()`
+- Automatically registered in `AgentRegistry` via `AgentRegistryMixin`
+
+### BaseTool (`sgr_agent_core/base_tool.py`)
+- Parent class for all tools
+- Must be a Pydantic model
+- Must implement `__call__(context, config)` method
+- Returns string or JSON string
+- Automatically registered in `ToolRegistry` via `ToolRegistryMixin`
+
+### MCPBaseTool (`sgr_agent_core/base_tool.py`)
+- Base class for MCP-integrated tools
+- Handles MCP client calls
+- Converts MCP responses to tool format
+
+## Configuration Modules
+
+### GlobalConfig (`sgr_agent_core/agent_config.py`)
+- Singleton pattern for global configuration
+- Loads from YAML files (`config.yaml`, `agents.yaml`)
+- Provides default values for all agent settings
+
+### AgentDefinition (`sgr_agent_core/agent_definition.py`)
+- Definition template for creating agents
+- Contains: name, base_class, tools, llm, prompts, execution, search, mcp configs
+- Supports YAML loading
+- Validates required fields
+
+### AgentConfig (`sgr_agent_core/agent_definition.py`)
+- Runtime configuration for agent instance
+- Combines: LLMConfig, SearchConfig, ExecutionConfig, PromptsConfig, MCPConfig
+- Supports hierarchical inheritance from GlobalConfig
+
+## Factory and Services
+
+### AgentFactory (`sgr_agent_core/agent_factory.py`)
+- Creates agent instances from AgentDefinition
+- Resolves agent classes from AgentRegistry
+- Resolves tools from ToolRegistry
+- Builds MCP tools via MCP2ToolConverter
+- Creates OpenAI client with proxy support
+
+### AgentRegistry (`sgr_agent_core/services/registry.py`)
+- Centralized registry for agent classes
+- Automatic registration via `AgentRegistryMixin`
+- Supports lookup by name (case-insensitive)
+
+### ToolRegistry (`sgr_agent_core/services/registry.py`)
+- Centralized registry for tool classes
+- Automatic registration via `ToolRegistryMixin`
+- Supports lookup by name (case-insensitive)
+
+### PromptLoader (`sgr_agent_core/services/prompt_loader.py`)
+- Loads and formats prompts from files or strings
+- Generates system prompts with tool descriptions
+- Formats initial user requests and clarification responses
+
+### MCP2ToolConverter (`sgr_agent_core/services/mcp_service.py`)
+- Converts MCP server tools to BaseTool instances
+- Handles MCP client initialization
+- Builds tools from MCP configuration
+
+## Agent Implementations
+
+### SGRAgent (`sgr_agent_core/agents/sgr_agent.py`)
+- Uses Structured Output approach
+- Creates dynamic JSON schema for tools
+- LLM returns reasoning + tool schema in one call
+- Extracts tool directly from reasoning result
+
+### ToolCallingAgent (`sgr_agent_core/agents/tool_calling_agent.py`)
+- Uses native Function Calling
+- No explicit reasoning phase
+- Uses `tool_choice="required"` for tool selection
+- Best for advanced LLM models
+
+### SGRToolCallingAgent (`sgr_agent_core/agents/sgr_tool_calling_agent.py`)
+- Hybrid approach: SGR + Function Calling
+- Uses ReasoningTool for explicit reasoning
+- Uses Function Calling for tool selection
+- Best balance for most tasks
+
+## Tools
+
+### ReasoningTool (`sgr_agent_core/tools/reasoning_tool.py`)
+- Provides structured reasoning output
+- Contains: reasoning_steps, current_situation, plan_status, enough_data, remaining_steps, task_completed
+
+### ClarificationTool (`sgr_agent_core/tools/clarification_tool.py`)
+- Requests clarification from user
+- Pauses agent execution
+- Waits for user input via `provide_clarification()`
+
+### WebSearchTool (`sgr_agent_core/tools/web_search_tool.py`)
+- Performs web search via Tavily API
+- Returns search results with sources
+- Respects max_searches limit
+
+### ExtractPageContentTool (`sgr_agent_core/tools/extract_page_content_tool.py`)
+- Extracts content from web pages
+- Uses Tavily API for content extraction
+- Respects content_limit
+
+### GeneratePlanTool (`sgr_agent_core/tools/generate_plan_tool.py`)
+- Generates research plan
+- Defines research goal and steps
+- Provides search strategies
+
+### AdaptPlanTool (`sgr_agent_core/tools/adapt_plan_tool.py`)
+- Adapts existing plan based on new information
+- Updates research goal and steps
+- Modifies search strategies
+
+### CreateReportTool (`sgr_agent_core/tools/create_report_tool.py`)
+- Creates final research report
+- Saves report to file
+- Formats report with sources
+
+### FinalAnswerTool (`sgr_agent_core/tools/final_answer_tool.py`)
+- Provides final answer to user
+- Completes agent execution
+- Sets agent state to COMPLETED
+
+## Server and API
+
+### FastAPI Application (`sgr_agent_core/server/app.py`)
+- Main FastAPI application
+- Configures CORS, middleware
+- Registers endpoints
+
+### API Endpoints (`sgr_agent_core/server/endpoints.py`)
+- `/v1/chat/completions` - OpenAI-compatible chat endpoint
+- `/v1/agents/{agent_id}/state` - Get agent state
+- `/v1/agents/{agent_id}/clarification` - Provide clarification
+- `/v1/agents` - List available agents
+
+### Streaming (`sgr_agent_core/stream.py`)
+- OpenAIStreamingGenerator for streaming responses
+- Formats events in OpenAI-compatible format
+- Handles tool calls and content chunks
+
+## General Rules for All Modules
+
+1. **Type hints**: Use type hints everywhere
+2. **Async**: All I/O operations must be async
+3. **Documentation**: Document public methods in English
+4. **Error handling**: Use specific exceptions
+5. **Registry**: Use registry pattern for discovery
+6. **Configuration**: Prefer YAML over hardcoded values
+
+## References
+
+@architecture.mdc
+@code-style.mdc
+@docs/ru/framework/main-concepts.md
