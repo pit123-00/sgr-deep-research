@@ -100,9 +100,9 @@ class CustomTool(BaseTool):
     """Custom tool for specific functionality."""
     tool_name: str = "custom_tool"
     description: str = "Does custom thing"
-    
+
     param: str
-    
+
     async def __call__(self, context: AgentContext, config: AgentConfig) -> str:
         """Execute custom tool."""
         return "expected_result"
@@ -180,15 +180,15 @@ async def test_custom_agent_creation():
 class CustomAgent(BaseAgent):
     """Custom agent implementation."""
     name: str = "custom_agent"
-    
+
     async def _reasoning_phase(self) -> ReasoningTool:
         """Reasoning phase implementation."""
         ...
-    
+
     async def _select_action_phase(self, reasoning: ReasoningTool) -> BaseTool:
         """Select action phase implementation."""
         ...
-    
+
     async def _action_phase(self, tool: BaseTool) -> str:
         """Action phase implementation."""
         ...

@@ -91,7 +91,7 @@ async def test_create_agent_from_definition(self):
             execution={},
         )
         agent = await AgentFactory.create(agent_def, task_messages=[{"role": "user", "content": "Test"}])
-        
+
         assert isinstance(agent, SGRAgent)
         assert len(agent.task_messages) == 1
 ```
