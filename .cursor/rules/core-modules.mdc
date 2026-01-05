@@ -166,4 +166,4 @@ alwaysApply: true
 
 @architecture.mdc
 @code-style.mdc
-@docs/ru/framework/main-concepts.md
+@docs/en/framework/main-concepts.md

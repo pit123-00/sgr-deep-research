@@ -113,6 +113,6 @@ while agent.state not in FINISH_STATES:
 
 ## References
 
-@docs/ru/framework/main-concepts.md
-@docs/ru/framework/agents.md
+@docs/en/framework/main-concepts.md
+@docs/en/framework/agents.md
 @README.md
