@@ -14,7 +14,6 @@ from sgr_agent_core.tools import (
 
 from .tools import (
     FindFilesFastTool,
-    GetCurrentDirectoryTool,
     GetSystemPathsTool,
     ListDirectoryTool,
     ReadFileTool,
@@ -28,11 +27,10 @@ class SGRFileAgent(SGRAgent):
 
     Focus: File search and analysis (read-only operations)
 
-    Available file system tools (6 essential tools):
-    - GetCurrentDirectoryTool: Get current working directory and context
+    Available file system tools (5 essential tools):
     - GetSystemPathsTool: Get standard system paths (home, documents, downloads, desktop, etc.)
+    - ListDirectoryTool: List directory contents with recursive option (can list current directory when path is not specified)
     - ReadFileTool: Read file contents with optional line range
-    - ListDirectoryTool: List directory contents with recursive option
     - SearchInFilesTool: Search text/code within files (grep-like functionality)
     - FindFilesFastTool: Universal file search using native find command (supports patterns, size, date filters)
 
@@ -70,10 +68,9 @@ class SGRFileAgent(SGRAgent):
         **kwargs: dict,
     ):
         file_system_tools = [
-            GetCurrentDirectoryTool,
             GetSystemPathsTool,
-            ReadFileTool,
             ListDirectoryTool,
+            ReadFileTool,
             SearchInFilesTool,
             FindFilesFastTool,
         ]

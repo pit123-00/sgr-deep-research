@@ -58,14 +58,12 @@ tools:
     # base_class defaults to sgr_agent_core.tools.FinalAnswerTool
 
   # File system tools - using relative imports (relative to config.yaml location)
-  get_current_directory_tool:
-    base_class: "tools.GetCurrentDirectoryTool"
   get_system_paths_tool:
     base_class: "tools.GetSystemPathsTool"
-  read_file_tool:
-    base_class: "tools.ReadFileTool"
   list_directory_tool:
     base_class: "tools.ListDirectoryTool"
+  read_file_tool:
+    base_class: "tools.ReadFileTool"
   search_in_files_tool:
     base_class: "tools.SearchInFilesTool"
   find_files_fast_tool:
@@ -97,9 +95,8 @@ agents:
       - "reasoning_tool"
       - "clarification_tool"
       - "final_answer_tool"
-      - "get_current_directory_tool"
       - "get_system_paths_tool"
-      - "read_file_tool"
       - "list_directory_tool"
+      - "read_file_tool"
       - "search_in_files_tool"
       - "find_files_fast_tool"

@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import logging
 from pathlib import Path
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Optional
 
 from pydantic import Field
 
@@ -25,30 +25,45 @@ class ListDirectoryTool(BaseTool):
     directory structure and discover available files.
 
     Usage:
-        - Provide directory path to list contents
+        - Provide directory path to list contents (or omit to list current directory)
         - Returns files and subdirectories
         - Use to navigate and understand project structure
+        - Can list current working directory when path is not specified
     """
 
     reasoning: str = Field(description="Why you need to list this directory and what you're looking for")
-    directory_path: str = Field(description="Path to directory to list (absolute or relative)")
+    directory_path: Optional[str] = Field(default=None, description="Path to directory to list (absolute or relative). If not specified, lists current working directory.")
     recursive: bool = Field(default=False, description="List subdirectories recursively")
 
     async def __call__(self, context: AgentContext, config: AgentConfig, **kwargs) -> str:
         """List directory contents."""
 
-        logger.info(f"📁 Listing directory: {self.directory_path}")
+        # Use current directory if path is not specified
+        if self.directory_path is None:
+            dir_path = Path.cwd()
+            display_path = str(dir_path.absolute())
+            logger.info(f"📁 Listing current directory: {display_path}")
+        else:
+            dir_path = Path(self.directory_path)
+            display_path = self.directory_path
+            logger.info(f"📁 Listing directory: {display_path}")
 
         try:
-            dir_path = Path(self.directory_path)
-
             if not dir_path.exists():
-                return f"Error: Directory not found: {self.directory_path}"
+                return f"Error: Directory not found: {display_path}"
 
             if not dir_path.is_dir():
-                return f"Error: Path is not a directory: {self.directory_path}"
+                return f"Error: Path is not a directory: {display_path}"
 
-            result = f"Directory: {self.directory_path}\n\n"
+            result = f"Directory: {display_path}\n\n"
+            
+            # Add current directory context if listing current directory
+            if self.directory_path is None:
+                result += f"Absolute path: {dir_path.absolute()}\n"
+                result += f"Directory name: {dir_path.name}\n"
+                if dir_path.parent != dir_path:
+                    result += f"Parent directory: {dir_path.parent}\n"
+                result += "\n"
 
             if self.recursive:
                 items = sorted(dir_path.rglob("*"))
@@ -83,9 +98,9 @@ class ListDirectoryTool(BaseTool):
 
             result += f"\nTotal: {len(dirs)} directories, {len(files)} files"
 
-            logger.debug(f"Listed {len(items)} items in {self.directory_path}")
+            logger.debug(f"Listed {len(items)} items in {display_path}")
             return result
 
         except Exception as e:
-            logger.error(f"Error listing directory {self.directory_path}: {e}")
+            logger.error(f"Error listing directory {display_path}: {e}")
             return f"Error listing directory: {str(e)}"
