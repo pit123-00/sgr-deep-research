@@ -15,16 +15,16 @@ logger = logging.getLogger(__name__)
 
 def validate_import_string_points_to_file(import_string: Any) -> Any:
     """Ensure ImportString based value points to an existing file.
-    
+
     A dotted path indicates an import string (e.g., tools.ReadFileTool).
     We use importlib to automatically search for the module in sys.path.
-    
+
     Args:
         import_string: The import string to validate
-        
+
     Returns:
         The validated import string
-        
+
     Raises:
         FileNotFoundError: If the module cannot be found in sys.path
     """

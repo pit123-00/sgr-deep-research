@@ -32,7 +32,12 @@ class ListDirectoryTool(BaseTool):
     """
 
     reasoning: str = Field(description="Why you need to list this directory and what you're looking for")
-    directory_path: Optional[str] = Field(default=None, description="Path to directory to list (absolute or relative). If not specified, lists current working directory.")
+    directory_path: Optional[str] = Field(
+        default=None,
+        description=(
+            "Path to directory to list (absolute or relative). " "If not specified, lists current working directory."
+        ),
+    )
     recursive: bool = Field(default=False, description="List subdirectories recursively")
 
     async def __call__(self, context: AgentContext, config: AgentConfig, **kwargs) -> str:
@@ -56,7 +61,7 @@ class ListDirectoryTool(BaseTool):
                 return f"Error: Path is not a directory: {display_path}"
 
             result = f"Directory: {display_path}\n\n"
-            
+
             # Add current directory context if listing current directory
             if self.directory_path is None:
                 result += f"Absolute path: {dir_path.absolute()}\n"

@@ -653,7 +653,8 @@ class TestAgentFactoryErrorHandling:
 
     @pytest.mark.asyncio
     async def test_create_agent_with_invalid_tool_class(self):
-        """Test creating agent with class that is not a subclass of BaseTool."""
+        """Test creating agent with class that is not a subclass of
+        BaseTool."""
 
         class NotATool:
             """A class that is not a BaseTool subclass."""
@@ -676,9 +677,7 @@ class TestAgentFactoryErrorHandling:
                 },
                 execution={},
             )
-            with pytest.raises(
-                TypeError, match=f"Tool class '{NotATool.__name__}' must be a subclass of BaseTool"
-            ):
+            with pytest.raises(TypeError, match=f"Tool class '{NotATool.__name__}' must be a subclass of BaseTool"):
                 await AgentFactory.create(agent_def, task_messages=[{"role": "user", "content": "Test task"}])
 
     @pytest.mark.asyncio

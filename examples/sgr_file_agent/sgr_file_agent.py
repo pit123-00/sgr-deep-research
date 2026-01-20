@@ -29,7 +29,8 @@ class SGRFileAgent(SGRAgent):
 
     Available file system tools (5 essential tools):
     - GetSystemPathsTool: Get standard system paths (home, documents, downloads, desktop, etc.)
-    - ListDirectoryTool: List directory contents with recursive option (can list current directory when path is not specified)
+    - ListDirectoryTool: List directory contents with recursive option
+      (can list current directory when path is not specified)
     - ReadFileTool: Read file contents with optional line range
     - SearchInFilesTool: Search text/code within files (grep-like functionality)
     - FindFilesFastTool: Universal file search using native find command (supports patterns, size, date filters)
