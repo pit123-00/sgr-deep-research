@@ -13,6 +13,37 @@ from pydantic import BaseModel, Field, FilePath, ImportString, computed_field, f
 logger = logging.getLogger(__name__)
 
 
+def validate_import_string_points_to_file(import_string: Any) -> Any:
+    """Ensure ImportString based value points to an existing file.
+    
+    A dotted path indicates an import string (e.g., tools.ReadFileTool).
+    We use importlib to automatically search for the module in sys.path.
+    
+    Args:
+        import_string: The import string to validate
+        
+    Returns:
+        The validated import string
+        
+    Raises:
+        FileNotFoundError: If the module cannot be found in sys.path
+    """
+    if isinstance(import_string, str) and "." in import_string:
+        module_parts = import_string.split(".")
+        if len(module_parts) >= 2:
+            # Get module path (everything except the class name)
+            module_path = ".".join(module_parts[:-1])
+            # Use importlib to find module in sys.path automatically
+            spec = importlib.util.find_spec(module_path)
+            if spec is None or spec.origin is None:
+                file_path = Path(*module_parts[:-1]).with_suffix(".py")
+                raise FileNotFoundError(
+                    f"base_class import '{import_string}' points to '{file_path}', "
+                    f"but the file could not be found in sys.path"
+                )
+    return import_string
+
+
 class LLMConfig(BaseModel, extra="allow"):
     api_key: str | None = Field(default=None, description="API key")
     base_url: str = Field(default="https://api.openai.com/v1", description="Base URL")
@@ -151,20 +182,7 @@ class AgentDefinition(AgentConfig):
         dir.agent.MyAgent). We use importlib to automatically search for
         the module in sys.path.
         """
-        if isinstance(v, str) and "." in v:
-            module_parts = v.split(".")
-            if len(module_parts) >= 2:
-                # Get module path (everything except the class name)
-                module_path = ".".join(module_parts[:-1])
-                # Use importlib to find module in sys.path automatically
-                spec = importlib.util.find_spec(module_path)
-                if spec is None or spec.origin is None:
-                    file_path = Path(*module_parts[:-1]).with_suffix(".py")
-                    raise FileNotFoundError(
-                        f"base_class import '{v}' points to '{file_path}', "
-                        f"but the file could not be found in sys.path"
-                    )
-        return v
+        return validate_import_string_points_to_file(v)
 
     @model_validator(mode="before")
     def default_config_override_validator(cls, data):
@@ -244,20 +262,7 @@ class ToolDefinition(BaseModel):
         tools.ReadFileTool). We use importlib to automatically search
         for the module in sys.path.
         """
-        if isinstance(v, str) and "." in v:
-            module_parts = v.split(".")
-            if len(module_parts) >= 2:
-                # Get module path (everything except the class name)
-                module_path = ".".join(module_parts[:-1])
-                # Use importlib to find module in sys.path automatically
-                spec = importlib.util.find_spec(module_path)
-                if spec is None or spec.origin is None:
-                    file_path = Path(*module_parts[:-1]).with_suffix(".py")
-                    raise FileNotFoundError(
-                        f"base_class import '{v}' points to '{file_path}', "
-                        f"but the file could not be found in sys.path"
-                    )
-        return v
+        return validate_import_string_points_to_file(v)
 
     @field_validator("base_class", mode="after")
     def base_class_is_tool(cls, v: Any) -> type[Any] | None:
