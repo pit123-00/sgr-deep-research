@@ -195,10 +195,8 @@ class AgentFactory:
             # Extract agent-specific parameters from agent_def (e.g., working_directory)
             # These are fields that are not part of standard AgentConfig but are allowed via extra="allow"
             agent_kwargs = {}
-            standard_fields = {"llm", "search", "execution", "prompts", "mcp", "name", "base_class", "tools"}
             for key, value in agent_def.model_dump().items():
-                if key not in standard_fields:
-                    agent_kwargs[key] = value
+                agent_kwargs[key] = value
 
             agent = BaseClass(
                 task_messages=task_messages,
