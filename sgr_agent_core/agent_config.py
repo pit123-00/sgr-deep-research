@@ -57,11 +57,11 @@ class GlobalConfig(BaseSettings, AgentConfig, Definitions):
             cls._initialized = False
             cls._instance = cls(**config_data, agents=cls._instance.agents, tools=cls._instance.tools)
         # agents and tools should be initialized last to allow merging
-        cls._definitions_from_dict({"agents": main_config_agents, "tools": main_config_tools}, config_dir)
+        cls._definitions_from_dict({"agents": main_config_agents, "tools": main_config_tools})
         return cls._instance
 
     @classmethod
-    def _definitions_from_dict(cls, data: dict, config_dir: Path | None = None) -> Self:
+    def _definitions_from_dict(cls, data: dict) -> Self:
         agents_data = data.get("agents", {})
         tools_data = data.get("tools", {})
 
@@ -120,9 +120,8 @@ class GlobalConfig(BaseSettings, AgentConfig, Definitions):
         if not agents_yaml_path.exists():
             raise FileNotFoundError(f"Agents definitions file not found: {agents_yaml_path}")
 
-        config_dir = agents_yaml_path.resolve().parent
         yaml_data = yaml.safe_load(agents_yaml_path.read_text(encoding="utf-8"))
         if not yaml_data.get("agents") and not yaml_data.get("tools"):
             raise ValueError(f"Agents definitions file must contain 'agents' or 'tools' key: {agents_yaml_path}")
 
-        return cls._definitions_from_dict(yaml_data, config_dir)
+        return cls._definitions_from_dict(yaml_data)
