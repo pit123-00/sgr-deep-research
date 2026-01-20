@@ -42,6 +42,122 @@ class AgentFactory:
         return AsyncOpenAI(**client_kwargs)
 
     @classmethod
+    def _resolve_tool(cls, tool_name: str | type, config: GlobalConfig) -> type[BaseTool]:
+        """Resolve a single tool from its name or class.
+
+        Args:
+            tool_name: Tool name (string) or tool class
+            config: Global configuration containing tool definitions
+
+        Returns:
+            Resolved tool class
+
+        Raises:
+            TypeError: If tool class is not a subclass of BaseTool
+            ValueError: If tool cannot be resolved
+        """
+        # If tool_name is already a class, use it directly
+        if isinstance(tool_name, type):
+            if not issubclass(tool_name, BaseTool):
+                raise TypeError(f"Tool class '{tool_name.__name__}' must be a subclass of BaseTool")
+            return tool_name
+
+        tool_class = None
+
+        # First, try to find tool in config.tools
+        if tool_name in config.tools:
+            tool_def = config.tools[tool_name]
+            base_class = tool_def.base_class
+
+            if base_class is None:
+                # Generate default path: sgr_agent_core.tools.{ToolName}
+                # Convert tool_name to ToolName (capitalize first letter, handle underscores)
+                tool_class_name = "".join(word.capitalize() for word in tool_name.split("_"))
+                base_class = f"sgr_agent_core.tools.{tool_class_name}"
+
+            # Resolve base_class (can be string, ImportString, or class)
+            if isinstance(base_class, str):
+                # Try import string resolution
+                if "." in base_class:
+                    # Relative import - resolve relative to config file location
+                    # This is handled by sys.path in agent_config.from_yaml
+                    try:
+                        module_parts = base_class.split(".")
+                        if len(module_parts) >= 2:
+                            module_path = ".".join(module_parts[:-1])
+                            class_name = module_parts[-1]
+                            module = __import__(module_path, fromlist=[class_name])
+                            tool_class = getattr(module, class_name)
+                    except (ImportError, AttributeError) as e:
+                        logger.warning(
+                            f"Failed to import tool '{tool_name}' from '{base_class}': {e}. " f"Trying registry..."
+                        )
+                else:
+                    # Try registry
+                    tool_class = ToolRegistry.get(base_class)
+            elif isinstance(base_class, type):
+                # Validate it's a BaseTool subclass
+                if not issubclass(base_class, BaseTool):
+                    raise TypeError(f"Tool '{tool_name}' base_class must be a subclass of BaseTool")
+                tool_class = base_class
+            else:
+                # ImportString - should be resolved by pydantic
+                tool_class = base_class
+        else:
+            # Tool not in config.tools, try registry
+            tool_class = ToolRegistry.get(tool_name)
+
+        # If still not found, try as import string
+        if tool_class is None:
+            if "." in tool_name:
+                try:
+                    module_parts = tool_name.split(".")
+                    if len(module_parts) >= 2:
+                        module_path = ".".join(module_parts[:-1])
+                        class_name = module_parts[-1]
+                        module = __import__(module_path, fromlist=[class_name])
+                        tool_class = getattr(module, class_name)
+                except (ImportError, AttributeError) as e:
+                    error_msg = (
+                        f"Tool '{tool_name}' not found in config.tools, registry, or failed to import.\n"
+                        f"Available tools in config: {', '.join(config.tools.keys())}\n"
+                        f"Available tools in registry: "
+                        f"{', '.join([c.__name__ for c in ToolRegistry.list_items()])}\n"
+                        f"Import error: {e}\n"
+                        f"  - Check that the tool name is correct\n"
+                        f"  - Define the tool in the 'tools' section of your config\n"
+                        f"  - Or ensure the tool is registered in ToolRegistry"
+                    )
+                    logger.error(error_msg)
+                    raise ValueError(error_msg) from e
+
+        if tool_class is None:
+            error_msg = (
+                f"Tool '{tool_name}' not found.\n"
+                f"Available tools in config: {', '.join(config.tools.keys())}\n"
+                f"Available tools in registry: {', '.join([c.__name__ for c in ToolRegistry.list_items()])}\n"
+                f"  - Define the tool in the 'tools' section of your config\n"
+                f"  - Or ensure the tool is registered in ToolRegistry"
+            )
+            logger.error(error_msg)
+            raise ValueError(error_msg)
+
+        return tool_class
+
+    @classmethod
+    def _resolve_tools(cls, tool_names: list[str | type], config: GlobalConfig) -> list[type[BaseTool]]:
+        """Resolve multiple tools from their names or classes.
+
+        Args:
+            tool_names: List of tool names (strings) or tool classes
+            config: Global configuration containing tool definitions
+
+        Returns:
+            List of resolved tool classes
+        """
+        return [cls._resolve_tool(tool_name, config) for tool_name in tool_names]
+
+    @classmethod
     async def create(cls, agent_def: AgentDefinition, task_messages: list[ChatCompletionMessageParam]) -> Agent:
         """Create an agent instance from a definition.
 
@@ -97,99 +213,9 @@ class AgentFactory:
             logger.error(error_msg)
             raise ValueError(error_msg)
         mcp_tools: list = await MCP2ToolConverter.build_tools_from_mcp(agent_def.mcp)
-
-        tools = [*mcp_tools]
         config = GlobalConfig()
-
-        for tool_name in agent_def.tools:
-            tool_class = None
-
-            # If tool_name is already a class, use it directly
-            if isinstance(tool_name, type):
-                if not issubclass(tool_name, BaseTool):
-                    raise TypeError(f"Tool class '{tool_name.__name__}' must be a subclass of BaseTool")
-                tools.append(tool_name)
-                continue
-
-            # First, try to find tool in config.tools
-            if tool_name in config.tools:
-                tool_def = config.tools[tool_name]
-                base_class = tool_def.base_class
-
-                if base_class is None:
-                    # Generate default path: sgr_agent_core.tools.{ToolName}
-                    # Convert tool_name to ToolName (capitalize first letter, handle underscores)
-                    tool_class_name = "".join(word.capitalize() for word in tool_name.split("_"))
-                    base_class = f"sgr_agent_core.tools.{tool_class_name}"
-
-                # Resolve base_class (can be string, ImportString, or class)
-                if isinstance(base_class, str):
-                    # Try import string resolution
-                    if "." in base_class:
-                        # Relative import - resolve relative to config file location
-                        # This is handled by sys.path in agent_config.from_yaml
-                        try:
-                            module_parts = base_class.split(".")
-                            if len(module_parts) >= 2:
-                                module_path = ".".join(module_parts[:-1])
-                                class_name = module_parts[-1]
-                                module = __import__(module_path, fromlist=[class_name])
-                                tool_class = getattr(module, class_name)
-                        except (ImportError, AttributeError) as e:
-                            logger.warning(
-                                f"Failed to import tool '{tool_name}' from '{base_class}': {e}. " f"Trying registry..."
-                            )
-                    else:
-                        # Try registry
-                        tool_class = ToolRegistry.get(base_class)
-                elif isinstance(base_class, type):
-                    # Validate it's a BaseTool subclass
-                    if not issubclass(base_class, BaseTool):
-                        raise TypeError(f"Tool '{tool_name}' base_class must be a subclass of BaseTool")
-                    tool_class = base_class
-                else:
-                    # ImportString - should be resolved by pydantic
-                    tool_class = base_class
-            else:
-                # Tool not in config.tools, try registry
-                tool_class = ToolRegistry.get(tool_name)
-
-            # If still not found, try as import string
-            if tool_class is None:
-                if "." in tool_name:
-                    try:
-                        module_parts = tool_name.split(".")
-                        if len(module_parts) >= 2:
-                            module_path = ".".join(module_parts[:-1])
-                            class_name = module_parts[-1]
-                            module = __import__(module_path, fromlist=[class_name])
-                            tool_class = getattr(module, class_name)
-                    except (ImportError, AttributeError) as e:
-                        error_msg = (
-                            f"Tool '{tool_name}' not found in config.tools, registry, or failed to import.\n"
-                            f"Available tools in config: {', '.join(config.tools.keys())}\n"
-                            f"Available tools in registry: "
-                            f"{', '.join([c.__name__ for c in ToolRegistry.list_items()])}\n"
-                            f"Import error: {e}\n"
-                            f"  - Check that the tool name is correct\n"
-                            f"  - Define the tool in the 'tools' section of your config\n"
-                            f"  - Or ensure the tool is registered in ToolRegistry"
-                        )
-                        logger.error(error_msg)
-                        raise ValueError(error_msg) from e
-
-            if tool_class is None:
-                error_msg = (
-                    f"Tool '{tool_name}' not found.\n"
-                    f"Available tools in config: {', '.join(config.tools.keys())}\n"
-                    f"Available tools in registry: {', '.join([c.__name__ for c in ToolRegistry.list_items()])}\n"
-                    f"  - Define the tool in the 'tools' section of your config\n"
-                    f"  - Or ensure the tool is registered in ToolRegistry"
-                )
-                logger.error(error_msg)
-                raise ValueError(error_msg)
-
-            tools.append(tool_class)
+        tools = cls._resolve_tools(agent_def.tools, config)
+        tools.extend(mcp_tools)
 
         try:
             # Extract agent-specific parameters from agent_def (e.g., working_directory)
