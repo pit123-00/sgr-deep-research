@@ -531,6 +531,42 @@ class TestAgentFactoryRegistryIntegration:
             assert len(agent.toolkit) > 0
 
     @pytest.mark.asyncio
+    async def test_create_agent_with_class_tools(self):
+        """Test creating agent with tool classes directly."""
+
+        class CustomTool(BaseTool):
+            tool_name = "custom_tool"
+            description = "A custom test tool"
+
+        with (
+            patch("sgr_agent_core.agent_factory.MCP2ToolConverter.build_tools_from_mcp", return_value=[]),
+            mock_global_config(),
+        ):
+            agent_def = AgentDefinition(
+                name="sgr_agent",
+                base_class=SGRAgent,
+                tools=[CustomTool, ReasoningTool],  # Classes directly
+                llm={"api_key": "test-key", "base_url": "https://api.openai.com/v1"},
+                prompts={
+                    "system_prompt_str": "Test system prompt",
+                    "initial_user_request_str": "Test initial request",
+                    "clarification_response_str": "Test clarification response",
+                },
+                execution={},
+            )
+            agent = await AgentFactory.create(agent_def, task_messages=[{"role": "user", "content": "Test task"}])
+
+            # Verify that both tools were added to toolkit
+            # Note: SGRAgent may transform toolkit, so we check that toolkit contains expected tools
+            assert CustomTool in agent.toolkit or any(
+                hasattr(tool, "tool_name") and tool.tool_name == "custom_tool" for tool in agent.toolkit
+            )
+            assert ReasoningTool in agent.toolkit or any(
+                hasattr(tool, "tool_name") and tool.tool_name == "reasoningtool" for tool in agent.toolkit
+            )
+            assert len(agent.toolkit) >= 1
+
+    @pytest.mark.asyncio
     async def test_create_agent_with_mixed_tools(self):
         """Test creating agent with both class and string tool names."""
 
@@ -545,7 +581,7 @@ class TestAgentFactoryRegistryIntegration:
             agent_def = AgentDefinition(
                 name="sgr_agent",
                 base_class=SGRAgent,
-                tools=["custom_tool", "reasoningtool"],  # Both as strings
+                tools=[CustomTool, "reasoningtool"],  # Class and string mixed
                 llm={"api_key": "test-key", "base_url": "https://api.openai.com/v1"},
                 prompts={
                     "system_prompt_str": "Test system prompt",
@@ -558,9 +594,12 @@ class TestAgentFactoryRegistryIntegration:
 
             # Verify that both tools were resolved and added to toolkit
             # Note: SGRAgent may transform toolkit, so we check that toolkit contains expected tools
-            tool_names = [tool.tool_name for tool in agent.toolkit]
-            assert "custom_tool" in tool_names
-            # ReasoningTool should be resolved from string and added
+            assert CustomTool in agent.toolkit or any(
+                hasattr(tool, "tool_name") and tool.tool_name == "custom_tool" for tool in agent.toolkit
+            )
+            assert ReasoningTool in agent.toolkit or any(
+                hasattr(tool, "tool_name") and tool.tool_name == "reasoningtool" for tool in agent.toolkit
+            )
             assert len(agent.toolkit) >= 1
 
 
@@ -610,6 +649,36 @@ class TestAgentFactoryErrorHandling:
                 execution={},
             )
             with pytest.raises(ValueError, match="Tool 'nonexistent_tool' not found"):
+                await AgentFactory.create(agent_def, task_messages=[{"role": "user", "content": "Test task"}])
+
+    @pytest.mark.asyncio
+    async def test_create_agent_with_invalid_tool_class(self):
+        """Test creating agent with class that is not a subclass of BaseTool."""
+
+        class NotATool:
+            """A class that is not a BaseTool subclass."""
+
+            pass
+
+        with (
+            patch("sgr_agent_core.agent_factory.MCP2ToolConverter.build_tools_from_mcp", return_value=[]),
+            mock_global_config(),
+        ):
+            agent_def = AgentDefinition(
+                name="sgr_agent",
+                base_class=SGRAgent,
+                tools=[NotATool],  # Invalid class - not a BaseTool subclass
+                llm={"api_key": "test-key", "base_url": "https://api.openai.com/v1"},
+                prompts={
+                    "system_prompt_str": "Test system prompt",
+                    "initial_user_request_str": "Test initial request",
+                    "clarification_response_str": "Test clarification response",
+                },
+                execution={},
+            )
+            with pytest.raises(
+                TypeError, match=f"Tool class '{NotATool.__name__}' must be a subclass of BaseTool"
+            ):
                 await AgentFactory.create(agent_def, task_messages=[{"role": "user", "content": "Test task"}])
 
     @pytest.mark.asyncio

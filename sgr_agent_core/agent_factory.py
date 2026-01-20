@@ -10,6 +10,7 @@ from openai.types.chat import ChatCompletionMessageParam
 from sgr_agent_core.agent_config import GlobalConfig
 from sgr_agent_core.agent_definition import AgentDefinition, LLMConfig
 from sgr_agent_core.base_agent import BaseAgent
+from sgr_agent_core.base_tool import BaseTool
 from sgr_agent_core.services import AgentRegistry, MCP2ToolConverter, ToolRegistry
 
 logger = logging.getLogger(__name__)
@@ -103,6 +104,13 @@ class AgentFactory:
         for tool_name in agent_def.tools:
             tool_class = None
 
+            # If tool_name is already a class, use it directly
+            if isinstance(tool_name, type):
+                if not issubclass(tool_name, BaseTool):
+                    raise TypeError(f"Tool class '{tool_name.__name__}' must be a subclass of BaseTool")
+                tools.append(tool_name)
+                continue
+
             # First, try to find tool in config.tools
             if tool_name in config.tools:
                 tool_def = config.tools[tool_name]
@@ -136,8 +144,6 @@ class AgentFactory:
                         tool_class = ToolRegistry.get(base_class)
                 elif isinstance(base_class, type):
                     # Validate it's a BaseTool subclass
-                    from sgr_agent_core.base_tool import BaseTool
-
                     if not issubclass(base_class, BaseTool):
                         raise TypeError(f"Tool '{tool_name}' base_class must be a subclass of BaseTool")
                     tool_class = base_class
