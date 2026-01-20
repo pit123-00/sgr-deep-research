@@ -171,11 +171,18 @@ class AgentFactory:
         Raises:
             ValueError: If agent creation fails
         """
-        # Resolve base_class (can be string, ImportString, or class)
+        # Resolve base_class
+        # Can be:
+        # 1. Class object (already resolved, or was passed directly)
+        # 2. String - either registry name or import string to resolve
+        # Note: ImportString from Pydantic is already resolved to class by this point
         BaseClass: Type[Agent] | None = None
 
-        if isinstance(agent_def.base_class, str):
-            # Try import string resolution first (for relative/absolute imports)
+        if isinstance(agent_def.base_class, type):
+            # Already a class (either passed directly or resolved from ImportString by Pydantic)
+            BaseClass = agent_def.base_class
+        elif isinstance(agent_def.base_class, str):
+            # String - try import string resolution first (for relative/absolute imports)
             if "." in agent_def.base_class:
                 # Import string - resolve dynamically
                 try:
@@ -196,9 +203,6 @@ class AgentFactory:
             # If not resolved yet, try registry
             if BaseClass is None:
                 BaseClass = AgentRegistry.get(agent_def.base_class)
-        elif isinstance(agent_def.base_class, type):
-            # Already a class
-            BaseClass = agent_def.base_class
 
         if BaseClass is None:
             error_msg = (
