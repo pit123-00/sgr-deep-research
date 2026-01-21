@@ -1,7 +1,10 @@
 # SGR Research Agent - .gitignore
 
 # Docker related
+.git/
 docker-compose.yaml
+docs/
+sgr-agent-frontend/
 
 # БЕЗОПАСНОСТЬ - API КЛЮЧИ И КОНФИДЕНЦИАЛЬНЫЕ ДАННЫЕ
 /config.yaml
