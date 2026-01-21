@@ -105,8 +105,8 @@ class AgentFactory:
         """
         # Resolve base_class
         # Can be:
-        # 1. Class object (already resolved, or was passed directly)
-        # 2. String - either registry name or import string to resolve
+        # 1. Class object (already resolved by Pydantic ImportString, or passed directly)
+        # 2. String - registry name to look up
         # Note: ImportString from Pydantic is already resolved to class by this point
         BaseClass: Type[Agent] | None = None
 
@@ -114,27 +114,8 @@ class AgentFactory:
             # Already a class (either passed directly or resolved from ImportString by Pydantic)
             BaseClass = agent_def.base_class
         elif isinstance(agent_def.base_class, str):
-            # String - try import string resolution first (for relative/absolute imports)
-            if "." in agent_def.base_class:
-                # Import string - resolve dynamically
-                try:
-                    module_parts = agent_def.base_class.split(".")
-                    if len(module_parts) >= 2:
-                        module_path = ".".join(module_parts[:-1])
-                        class_name = module_parts[-1]
-                        module = __import__(module_path, fromlist=[class_name])
-                        BaseClass = getattr(module, class_name)
-                        logger.debug(f"Imported agent class '{class_name}' from '{module_path}'")
-                except (ImportError, AttributeError) as e:
-                    logger.warning(
-                        f"Failed to import agent '{agent_def.base_class}' from import string: {e}. "
-                        f"Trying registry..."
-                    )
-                    # Fall through to try registry
-
-            # If not resolved yet, try registry
-            if BaseClass is None:
-                BaseClass = AgentRegistry.get(agent_def.base_class)
+            # String - look up in registry
+            BaseClass = AgentRegistry.get(agent_def.base_class)
 
         if BaseClass is None:
             error_msg = (
@@ -142,9 +123,10 @@ class AgentFactory:
                 f"Available base classes in registry: {', '.join([c.__name__ for c in AgentRegistry.list_items()])}\n"
                 f"To fix this issue:\n"
                 f"  - Check that '{agent_def.base_class}' is spelled correctly in your configuration\n"
-                f"  - If using import string (e.g., 'sgr_file_agent.SGRFileAgent'), ensure the module is in sys.path\n"
                 f"  - If using class name, ensure the custom agent classes are imported before creating agents "
-                f"(otherwise they won't be registered)"
+                f"(otherwise they won't be registered)\n"
+                f"  - If using import string (e.g., 'sgr_file_agent.SGRFileAgent'), ensure the module is imported "
+                f"and the class is registered in AgentRegistry"
             )
             logger.error(error_msg)
             raise ValueError(error_msg)
