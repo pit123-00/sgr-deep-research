@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import logging
+import os
 from pathlib import Path
 from typing import TYPE_CHECKING, Optional
 
@@ -35,7 +36,7 @@ class ListDirectoryTool(BaseTool):
     directory_path: Optional[str] = Field(
         default=None,
         description=(
-            "Path to directory to list (absolute or relative). " "If not specified, lists current working directory."
+            "Path to directory to list (absolute or relative). If not specified, lists current working directory."
         ),
     )
     recursive: bool = Field(default=False, description="List subdirectories recursively")
@@ -43,69 +44,72 @@ class ListDirectoryTool(BaseTool):
     async def __call__(self, context: AgentContext, config: AgentConfig, **kwargs) -> str:
         """List directory contents."""
 
-        # Use current directory if path is not specified
+        # Convert to Path object and use current directory if path is not specified
+        directory_path = Path(self.directory_path) if self.directory_path else Path.cwd()
+
+        if not directory_path.exists():
+            return f"Error: Directory not found: {directory_path}"
+
+        if not directory_path.is_dir():
+            return f"Error: Path is not a directory: {directory_path}"
+
+        if not os.access(directory_path, os.R_OK):
+            return f"Error: Cannot access directory {directory_path}: Permission denied"
+
+        result = f"Directory: {directory_path}\n\n"
+
+        # Add current directory context if listing current directory
         if self.directory_path is None:
-            dir_path = Path.cwd()
-            display_path = str(dir_path.absolute())
-            logger.info(f"📁 Listing current directory: {display_path}")
+            result += f"Absolute path: {directory_path.absolute()}\n"
+            result += f"Directory name: {directory_path.name}\n"
+            result += "\n"
+
+        # Get directory items
+        if self.recursive:
+            items = sorted(directory_path.rglob("*"))
+            result += "Contents (recursive, filtered):\n"
         else:
-            dir_path = Path(self.directory_path)
-            display_path = self.directory_path
-            logger.info(f"📁 Listing directory: {display_path}")
+            items = sorted(directory_path.iterdir())
+            result += "Contents (filtered):\n"
 
-        try:
-            if not dir_path.exists():
-                return f"Error: Directory not found: {display_path}"
+        # Filter out ignored directories and files
+        items = filter_paths(items)
 
-            if not dir_path.is_dir():
-                return f"Error: Path is not a directory: {display_path}"
+        # Limit results
+        if len(items) > MAX_DIRECTORY_ITEMS:
+            result += f"Note: Showing first {MAX_DIRECTORY_ITEMS} of {len(items)} items\n\n"
+            items = items[:MAX_DIRECTORY_ITEMS]
 
-            result = f"Directory: {display_path}\n\n"
+        dirs = []
+        files = []
 
-            # Add current directory context if listing current directory
-            if self.directory_path is None:
-                result += f"Absolute path: {dir_path.absolute()}\n"
-                result += f"Directory name: {dir_path.name}\n"
-                if dir_path.parent != dir_path:
-                    result += f"Parent directory: {dir_path.parent}\n"
-                result += "\n"
+        for item in items:
+            try:
+                if self.recursive:
+                    relative_path = item.relative_to(directory_path)
+                else:
+                    relative_path = item.name
 
-            if self.recursive:
-                items = sorted(dir_path.rglob("*"))
-                result += "Contents (recursive, filtered):\n"
-            else:
-                items = sorted(dir_path.iterdir())
-                result += "Contents (filtered):\n"
-
-            # Filter out ignored directories and files
-            items = filter_paths(items)
-
-            # Limit results
-            if len(items) > MAX_DIRECTORY_ITEMS:
-                result += f"Note: Showing first {MAX_DIRECTORY_ITEMS} of {len(items)} items\n\n"
-                items = items[:MAX_DIRECTORY_ITEMS]
-
-            dirs = []
-            files = []
-
-            for item in items:
-                relative_path = item.relative_to(dir_path) if self.recursive else item.name
                 if item.is_dir():
                     dirs.append(f"📁 {relative_path}/")
                 else:
-                    size = item.stat().st_size
-                    files.append(f"📄 {relative_path} ({size} bytes)")
+                    try:
+                        size = item.stat().st_size
+                        files.append(f"📄 {relative_path} ({size} bytes)")
+                    except (OSError, PermissionError):
+                        # Skip files that cannot be accessed
+                        files.append(f"📄 {relative_path} (size unknown)")
+            except ValueError:
+                # Skip items that cannot be relativized (shouldn't happen, but just in case)
+                logger.warning(f"Cannot get relative path for {item}")
+                continue
 
-            if dirs:
-                result += "\nDirectories:\n" + "\n".join(dirs) + "\n"
-            if files:
-                result += "\nFiles:\n" + "\n".join(files) + "\n"
+        if dirs:
+            result += "\nDirectories:\n" + "\n".join(dirs) + "\n"
+        if files:
+            result += "\nFiles:\n" + "\n".join(files) + "\n"
 
-            result += f"\nTotal: {len(dirs)} directories, {len(files)} files"
+        result += f"\nTotal: {len(dirs)} directories, {len(files)} files"
 
-            logger.debug(f"Listed {len(items)} items in {display_path}")
-            return result
-
-        except Exception as e:
-            logger.error(f"Error listing directory {display_path}: {e}")
-            return f"Error listing directory: {str(e)}"
+        logger.debug(f"Listed {len(items)} items in {directory_path}")
+        return result
