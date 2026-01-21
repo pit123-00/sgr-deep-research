@@ -42,8 +42,6 @@ class GlobalConfig(BaseSettings, AgentConfig, Definitions):
         # examples/sgr_file_agent and examples in sys.path
         if str(config_dir) not in sys.path:
             sys.path.insert(0, str(config_dir))
-        if str(config_dir.parent) not in sys.path:
-            sys.path.insert(0, str(config_dir.parent))
         if not yaml_path.exists():
             raise FileNotFoundError(f"Configuration file not found: {yaml_path}")
         config_data = yaml.safe_load(yaml_path.read_text(encoding="utf-8"))
