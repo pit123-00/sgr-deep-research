@@ -1,0 +1,48 @@
+x-shared-logs: &shared-logs
+  logging:
+    driver: "json-file"
+    options:
+      max-size: "10k"
+
+services:
+  backend:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    command:
+      - --config-file=/app/config.yaml
+      - --agents-file=/app/agents.yaml
+    container_name: sgr-agent-backend
+    restart: unless-stopped
+    ports:
+      - "${BACKEND_PORT:-8010}:8010"
+    volumes:
+      - ./examples/sgr_deep_research:/app/examples/sgr_deep_research:ro
+      - ./sgr_agent_core:/app/sgr_agent_core:ro
+      - ./config.yaml:/app/config.yaml:ro
+      - ./agents.yaml:/app/agents.yaml:ro
+      - ./logging_config.yaml:/app/logging_config.yaml:ro
+      - ./logs:/app/logs
+      - ./reports:/app/reports
+    networks:
+      - sgr-network
+    <<: *shared-logs
+
+  frontend:
+    build:
+      context: ./sgr-agent-frontend
+      dockerfile: Dockerfile
+      args:
+        - VITE_API_BASE_URL=${VITE_API_BASE_URL:-http://localhost:8010}
+        - VITE_APP_ENV=${VITE_APP_ENV:-production}
+    container_name: sgr-agent-frontend
+    restart: unless-stopped
+    ports:
+      - "${FRONTEND_PORT:-5173}:80"
+    networks:
+      - sgr-network
+    <<: *shared-logs
+
+networks:
+  sgr-network:
+    driver: bridge
