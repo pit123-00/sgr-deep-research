@@ -8,7 +8,7 @@ reporting capabilities.
 from typing import Type
 
 from openai import AsyncOpenAI, pydantic_function_tool
-from openai.types.chat import ChatCompletionFunctionToolParam
+from openai.types.chat import ChatCompletionFunctionToolParam, ChatCompletionMessageParam
 
 from sgr_agent_core.agent_definition import AgentConfig
 from sgr_agent_core.agents.sgr_agent import SGRAgent
@@ -32,7 +32,7 @@ class ResearchSGRAgent(SGRAgent):
 
     def __init__(
         self,
-        task: str,
+        task_messages: list[ChatCompletionMessageParam],
         openai_client: AsyncOpenAI,
         agent_config: AgentConfig,
         toolkit: list[Type[BaseTool]],
@@ -41,7 +41,7 @@ class ResearchSGRAgent(SGRAgent):
     ):
         research_toolkit = [WebSearchTool, ExtractPageContentTool, CreateReportTool, FinalAnswerTool]
         super().__init__(
-            task=task,
+            task_messages=task_messages,
             openai_client=openai_client,
             agent_config=agent_config,
             toolkit=research_toolkit + [t for t in toolkit if t not in research_toolkit],
@@ -73,7 +73,7 @@ class ResearchToolCallingAgent(ToolCallingAgent):
 
     def __init__(
         self,
-        task: str,
+        task_messages: list[ChatCompletionMessageParam],
         openai_client: AsyncOpenAI,
         agent_config: AgentConfig,
         toolkit: list[Type[BaseTool]],
@@ -82,7 +82,7 @@ class ResearchToolCallingAgent(ToolCallingAgent):
     ):
         research_toolkit = [WebSearchTool, ExtractPageContentTool, CreateReportTool, FinalAnswerTool]
         super().__init__(
-            task=task,
+            task_messages=task_messages,
             openai_client=openai_client,
             agent_config=agent_config,
             toolkit=research_toolkit + [t for t in toolkit if t not in research_toolkit],
@@ -114,7 +114,7 @@ class ResearchSGRToolCallingAgent(SGRToolCallingAgent):
 
     def __init__(
         self,
-        task: str,
+        task_messages: list[ChatCompletionMessageParam],
         openai_client: AsyncOpenAI,
         agent_config: AgentConfig,
         toolkit: list[Type[BaseTool]],
@@ -123,7 +123,7 @@ class ResearchSGRToolCallingAgent(SGRToolCallingAgent):
     ):
         research_toolkit = [WebSearchTool, ExtractPageContentTool, CreateReportTool, FinalAnswerTool]
         super().__init__(
-            task=task,
+            task_messages=task_messages,
             openai_client=openai_client,
             agent_config=agent_config,
             toolkit=research_toolkit + [t for t in toolkit if t not in research_toolkit],

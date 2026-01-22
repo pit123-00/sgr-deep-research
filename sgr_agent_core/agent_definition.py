@@ -4,7 +4,7 @@ import logging
 import os
 from functools import cached_property
 from pathlib import Path
-from typing import Any, Self
+from typing import Any, Self, Union
 
 import yaml
 from fastmcp.mcp_config import MCPConfig
@@ -34,13 +34,21 @@ def validate_import_string_points_to_file(import_string: Any) -> Any:
             # Get module path (everything except the class name)
             module_path = ".".join(module_parts[:-1])
             # Use importlib to find module in sys.path automatically
-            spec = importlib.util.find_spec(module_path)
-            if spec is None or spec.origin is None:
+            try:
+                spec = importlib.util.find_spec(module_path)
+                if spec is None or spec.origin is None:
+                    file_path = Path(*module_parts[:-1]).with_suffix(".py")
+                    raise FileNotFoundError(
+                        f"base_class import '{import_string}' points to '{file_path}', "
+                        f"but the file could not be found in sys.path"
+                    )
+            except ModuleNotFoundError as e:
+                # Convert ModuleNotFoundError to FileNotFoundError for consistency
                 file_path = Path(*module_parts[:-1]).with_suffix(".py")
                 raise FileNotFoundError(
                     f"base_class import '{import_string}' points to '{file_path}', "
                     f"but the file could not be found in sys.path"
-                )
+                ) from e
     return import_string
 
 
@@ -170,8 +178,10 @@ class AgentDefinition(AgentConfig):
 
     name: str = Field(description="Unique agent name/ID")
     # ToDo: not sure how to type this properly and avoid circular imports
-    base_class: type[Any] | ImportString | str = Field(description="Agent class name")
-    tools: list[type[Any] | str] = Field(default_factory=list, description="List of tool names to include")
+    base_class: Union[type[Any], ImportString, str] = Field(description="Agent class name")
+    tools: list[Union[type[Any], str, "ToolDefinition"]] = Field(
+        default_factory=list, description="List of tool names to include"
+    )
 
     @field_validator("base_class", mode="before")
     def base_class_import_points_to_file(cls, v: Any) -> Any:
@@ -250,7 +260,7 @@ class ToolDefinition(BaseModel):
     """
 
     name: str = Field(description="Unique tool name/ID")
-    base_class: type[Any] | ImportString | str | None = Field(
+    base_class: Union[type[Any], ImportString, str, None] = Field(
         default=None, description="Tool class name (optional, defaults to sgr_agent_core.tools.{name})"
     )
 
@@ -265,7 +275,7 @@ class ToolDefinition(BaseModel):
         return validate_import_string_points_to_file(v)
 
     @field_validator("base_class", mode="after")
-    def base_class_is_tool(cls, v: Any) -> type[Any] | None:
+    def base_class_is_tool(cls, v: Any) -> Union[type[Any], None]:
         # Don't validate at definition time - validation happens when tool is actually used
         # This allows relative imports to work correctly
         if v is None:

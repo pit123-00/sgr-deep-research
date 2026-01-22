@@ -32,6 +32,20 @@ mcp:
     deepwiki:
       url: "https://mcp.deepwiki.com/mcp"
 
+# Tool Definitions
+tools:
+  # Core tools (base_class defaults to sgr_agent_core.tools.*)
+  web_search_tool:
+    # base_class defaults to sgr_agent_core.tools.WebSearchTool
+  extract_page_content_tool:
+    # base_class defaults to sgr_agent_core.tools.ExtractPageContentTool
+  final_answer_tool:
+    # base_class defaults to sgr_agent_core.tools.FinalAnswerTool
+  clarification_tool:
+    # base_class defaults to sgr_agent_core.tools.ClarificationTool
+  reasoning_tool:
+    # base_class defaults to sgr_agent_core.tools.ReasoningTool
+
 # Agent Definitions (without CreateReportTool)
 agents:
   # SGR Agent without reporting
@@ -41,10 +55,10 @@ agents:
       model: "gpt-4o-mini"
       temperature: 0.4
     tools:
-      - "WebSearchTool"
-      - "ExtractPageContentTool"
-      - "FinalAnswerTool"
-      - "ClarificationTool"
+      - "web_search_tool"
+      - "extract_page_content_tool"
+      - "final_answer_tool"
+      - "clarification_tool"
 
   # Tool Calling Agent without reporting
   tool_calling_agent_no_reporting:
@@ -53,10 +67,10 @@ agents:
       model: "gpt-4o-mini"
       temperature: 0.4
     tools:
-      - "WebSearchTool"
-      - "ExtractPageContentTool"
-      - "FinalAnswerTool"
-      - "ClarificationTool"
+      - "web_search_tool"
+      - "extract_page_content_tool"
+      - "final_answer_tool"
+      - "clarification_tool"
 
   # SGR Tool Calling Agent without reporting
   sgr_tool_calling_agent_no_reporting:
@@ -65,8 +79,8 @@ agents:
       model: "gpt-4o-mini"
       temperature: 0.4
     tools:
-      - "WebSearchTool"
-      - "ExtractPageContentTool"
-      - "FinalAnswerTool"
-      - "ClarificationTool"
-      - "ReasoningTool"
+      - "web_search_tool"
+      - "extract_page_content_tool"
+      - "final_answer_tool"
+      - "clarification_tool"
+      - "reasoning_tool"

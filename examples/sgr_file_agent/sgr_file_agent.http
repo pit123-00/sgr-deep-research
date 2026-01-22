@@ -46,7 +46,7 @@ Content-Type: application/json
   "messages": [
     {
       "role": "user",
-      "content": "Find all Python files in the current directory"
+      "content": "Придумай план как составить стихотворение про нейросети, потом выполни его"
     }
   ],
   "stream": true,

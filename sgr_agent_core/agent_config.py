@@ -37,9 +37,7 @@ class GlobalConfig(BaseSettings, AgentConfig, Definitions):
     def from_yaml(cls, yaml_path: str) -> Self:
         yaml_path = Path(yaml_path)
         config_dir = yaml_path.resolve().parent
-        # Add both config_dir and its parent to sys.path to support package imports
-        # e.g., for config in examples/sgr_file_agent/config.yaml, we need both
-        # examples/sgr_file_agent and examples in sys.path
+        # Add config_dir to sys.path to support package imports
         if str(config_dir) not in sys.path:
             sys.path.insert(0, str(config_dir))
         if not yaml_path.exists():
@@ -110,7 +108,7 @@ class GlobalConfig(BaseSettings, AgentConfig, Definitions):
 
         Raises:
             FileNotFoundError: If YAML file not found
-            ValueError: If YAML file doesn't contain 'agents' key
+            ValueError: If YAML file doesn't contain both 'agents' and 'tools' keys
         """
         agents_yaml_path = Path(agents_yaml_path)
 
@@ -119,7 +117,7 @@ class GlobalConfig(BaseSettings, AgentConfig, Definitions):
             raise FileNotFoundError(f"Agents definitions file not found: {agents_yaml_path}")
 
         yaml_data = yaml.safe_load(agents_yaml_path.read_text(encoding="utf-8"))
-        if not yaml_data.get("agents") and not yaml_data.get("tools"):
-            raise ValueError(f"Agents definitions file must contain 'agents' or 'tools' key: {agents_yaml_path}")
+        if "agents" not in yaml_data or "tools" not in yaml_data:
+            raise ValueError(f"Agents definitions file must contain both 'agents' and 'tools' keys: {agents_yaml_path}")
 
         return cls._definitions_from_dict(yaml_data)

@@ -62,8 +62,40 @@ class AgentFactory:
                 raise TypeError(f"Tool class '{tool_name.__name__}' must be a subclass of BaseTool")
             return tool_name
 
+        # First, check if tool is defined in config.tools section
+        if tool_name in config.tools:
+            tool_def = config.tools[tool_name]
+            # If base_class is specified, resolve it
+            if tool_def.base_class is not None:
+                if isinstance(tool_def.base_class, type):
+                    # Already a class
+                    if not issubclass(tool_def.base_class, BaseTool):
+                        raise TypeError(
+                            f"Tool '{tool_name}' base_class '{tool_def.base_class.__name__}' "
+                            f"must be a subclass of BaseTool"
+                        )
+                    return tool_def.base_class
+                elif isinstance(tool_def.base_class, str):
+                    # Import string - try to resolve from registry
+                    tool_class = ToolRegistry.get(tool_def.base_class)
+                    if tool_class is not None:
+                        return tool_class
+            # No base_class specified or base_class is string but not found in registry
+            # Try to infer from tool name: convert snake_case to PascalCase
+            # (e.g., web_search_tool -> WebSearchTool)
+            class_name = "".join(word.capitalize() for word in tool_name.split("_"))
+            tool_class = ToolRegistry.get(class_name)
+            if tool_class is not None:
+                return tool_class
+
         # Try to resolve tool by tool_name from registry
         tool_class = ToolRegistry.get(tool_name)
+
+        if tool_class is None:
+            # Try converting snake_case to PascalCase
+            if "_" in tool_name:
+                class_name = "".join(word.capitalize() for word in tool_name.split("_"))
+                tool_class = ToolRegistry.get(class_name)
 
         if tool_class is None:
             error_msg = (
@@ -71,6 +103,8 @@ class AgentFactory:
                 f"Available tools in registry: {', '.join([c.__name__ for c in ToolRegistry.list_items()])}\n"
                 f"  - Ensure the tool is registered in ToolRegistry"
             )
+            if config.tools:
+                error_msg += f"\n  - Available tools in config: {', '.join(config.tools.keys())}"
             logger.error(error_msg)
             raise ValueError(error_msg)
 

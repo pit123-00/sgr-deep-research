@@ -68,7 +68,8 @@ class TestAgentsLoadingFromAgentsYaml:
                     "llm": {"api_key": "test-key", "model": "gpt-4o-mini"},
                     "tools": ["FinalAnswerTool"],
                 }
-            }
+            },
+            "tools": {},
         }
         agents_yaml.write_text(yaml.dump(agents_data), encoding="utf-8")
 
@@ -98,7 +99,8 @@ class TestAgentsLoadingFromAgentsYaml:
                     "llm": {"api_key": "test-key", "model": "gpt-4o-mini", "temperature": 0.8},
                     "tools": ["FinalAnswerTool"],
                 }
-            }
+            },
+            "tools": {},
         }
         agents_yaml.write_text(yaml.dump(agents_data), encoding="utf-8")
 
@@ -169,7 +171,8 @@ class TestAgentsLoadingOrder:
                     "llm": {"api_key": "test-key", "model": "gpt-4o-mini", "temperature": 0.8},
                     "tools": ["FinalAnswerTool"],
                 }
-            }
+            },
+            "tools": {},
         }
         agents_yaml.write_text(yaml.dump(agents_data), encoding="utf-8")
 
@@ -206,7 +209,8 @@ class TestAgentsLoadingOrder:
                     "llm": {"api_key": "test-key", "model": "gpt-4o-mini"},
                     "tools": ["FinalAnswerTool"],
                 }
-            }
+            },
+            "tools": {},
         }
         agents_yaml.write_text(yaml.dump(agents_data), encoding="utf-8")
 
@@ -240,7 +244,7 @@ class TestAgentsLoadingOrder:
         """
         # Create agents.yaml without 'agents' key
         agents_yaml = temp_dir / "agents.yaml"
-        agents_data = {"some_other_key": "value"}
+        agents_data = {"some_other_key": "value", "tools": {}}
         agents_yaml.write_text(yaml.dump(agents_data), encoding="utf-8")
 
         # Create config.yaml
@@ -250,7 +254,50 @@ class TestAgentsLoadingOrder:
 
         # Use actual load_config() from __main__.py
         # Loading agents.yaml without 'agents' key should raise ValueError
-        with pytest.raises(ValueError, match="must contain 'agents' or 'tools' key"):
+        with pytest.raises(ValueError, match="must contain both 'agents' and 'tools' keys"):
+            load_config(str(config_yaml), str(agents_yaml))
+
+    def test_agents_yaml_missing_tools_key(self, temp_dir, reset_global_config):
+        """Test that missing 'tools' key in agents.yaml raises ValueError."""
+        # Create agents.yaml without 'tools' key
+        agents_yaml = temp_dir / "agents.yaml"
+        agents_data = {
+            "agents": {
+                "test_agent": {
+                    "base_class": "sgr_agent_core.agents.sgr_agent.SGRAgent",
+                    "llm": {"api_key": "test-key", "model": "gpt-4o-mini"},
+                    "tools": ["FinalAnswerTool"],
+                }
+            }
+        }
+        agents_yaml.write_text(yaml.dump(agents_data), encoding="utf-8")
+
+        # Create config.yaml
+        config_yaml = temp_dir / "config.yaml"
+        config_data = {"llm": {"api_key": "test-key", "model": "gpt-4o-mini"}}
+        config_yaml.write_text(yaml.dump(config_data), encoding="utf-8")
+
+        # Use actual load_config() from __main__.py
+        # Loading agents.yaml without 'tools' key should raise ValueError
+        with pytest.raises(ValueError, match="must contain both 'agents' and 'tools' keys"):
+            load_config(str(config_yaml), str(agents_yaml))
+
+    def test_agents_yaml_missing_both_keys(self, temp_dir, reset_global_config):
+        """Test that missing both 'agents' and 'tools' keys in agents.yaml
+        raises ValueError."""
+        # Create agents.yaml without both keys
+        agents_yaml = temp_dir / "agents.yaml"
+        agents_data = {"some_other_key": "value"}
+        agents_yaml.write_text(yaml.dump(agents_data), encoding="utf-8")
+
+        # Create config.yaml
+        config_yaml = temp_dir / "config.yaml"
+        config_data = {"llm": {"api_key": "test-key", "model": "gpt-4o-mini"}}
+        config_yaml.write_text(yaml.dump(config_data), encoding="utf-8")
+
+        # Use actual load_config() from __main__.py
+        # Loading agents.yaml without both keys should raise ValueError
+        with pytest.raises(ValueError, match="must contain both 'agents' and 'tools' keys"):
             load_config(str(config_yaml), str(agents_yaml))
 
     def test_agents_yaml_error_logging(self, temp_dir, reset_global_config):
@@ -261,7 +308,7 @@ class TestAgentsLoadingOrder:
         """
         # Create agents.yaml without 'agents' key
         agents_yaml = temp_dir / "agents.yaml"
-        agents_data = {"some_other_key": "value"}
+        agents_data = {"some_other_key": "value", "tools": {}}
         agents_yaml.write_text(yaml.dump(agents_data), encoding="utf-8")
 
         # Create config.yaml
@@ -272,7 +319,7 @@ class TestAgentsLoadingOrder:
         # Mock logger to check if error is logged
         with patch("sgr_agent_core.server.__main__.logger") as mock_logger:
             # Use actual load_config() from __main__.py
-            with pytest.raises(ValueError, match="must contain 'agents' or 'tools' key"):
+            with pytest.raises(ValueError, match="must contain both 'agents' and 'tools' keys"):
                 load_config(str(config_yaml), str(agents_yaml))
 
             # Check that logger.error was called (only if try/except is uncommented)
@@ -282,8 +329,9 @@ class TestAgentsLoadingOrder:
                 "ERROR: logger.error was not called! This means try/except block is commented out in __main__.py",
             )
             error_message = mock_logger.error.call_args[0][0]
-            assert "Invalid agents file format" in error_message or "must contain 'agents' key" in str(
-                error_message
+            assert (
+                "Invalid agents file format" in error_message
+                or "must contain both 'agents' and 'tools' keys" in str(error_message)
             ), f"Expected error message about invalid format, got: {error_message}"
 
     def test_agents_yaml_yaml_error_logging(self, temp_dir, reset_global_config):
@@ -415,7 +463,8 @@ class TestAgentsLoadingOrder:
                     "llm": {"api_key": "test-key", "model": "gpt-4o-mini", "temperature": 0.9},
                     "tools": ["FinalAnswerTool"],
                 },
-            }
+            },
+            "tools": {},
         }
         agents_yaml.write_text(yaml.dump(agents_data), encoding="utf-8")
 
@@ -460,7 +509,8 @@ class TestAgentsLoadingOrder:
                     "llm": {"api_key": "test-key", "model": "gpt-4o-mini", "temperature": 0.7},
                     "tools": ["FinalAnswerTool"],
                 }
-            }
+            },
+            "tools": {},
         }
         agents_yaml.write_text(yaml.dump(agents_data), encoding="utf-8")
 
@@ -502,7 +552,8 @@ class TestAgentsLoadingOrder:
                     "llm": {"api_key": "test-key", "model": "gpt-4o-mini", "temperature": 0.88},
                     "tools": ["FinalAnswerTool"],
                 }
-            }
+            },
+            "tools": {},
         }
         agents_yaml.write_text(yaml.dump(agents_data), encoding="utf-8")
 
