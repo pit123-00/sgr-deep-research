@@ -37,11 +37,7 @@ def validate_import_string_points_to_file(import_string: Any) -> Any:
             try:
                 spec = importlib.util.find_spec(module_path)
                 if spec is None or spec.origin is None:
-                    file_path = Path(*module_parts[:-1]).with_suffix(".py")
-                    raise FileNotFoundError(
-                        f"base_class import '{import_string}' points to '{file_path}', "
-                        f"but the file could not be found in sys.path"
-                    )
+                    raise ModuleNotFoundError()
             except ModuleNotFoundError as e:
                 # Convert ModuleNotFoundError to FileNotFoundError for consistency
                 file_path = Path(*module_parts[:-1]).with_suffix(".py")
