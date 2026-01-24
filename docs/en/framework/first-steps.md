@@ -40,7 +40,7 @@ async def main():
 
     # Create agent directly
     agent = SGRToolCallingAgent(
-        task="Write a forecast of the main trends in the development of artificial intelligence",
+        task_messages=[{"role": "user", "content": "Write a forecast of the main trends in the development of artificial intelligence"}],
         openai_client=openai_client,
         agent_config=agent_config,
         toolkit=toolkit,
@@ -172,7 +172,7 @@ async def main():
     # Create agent through Factory
     agent = await AgentFactory.create(
         agent_def=agent_def,
-        task="Write a forecast of the main trends in the development of artificial intelligence",
+        task_messages=[{"role": "user", "content": "Write a forecast of the main trends in the development of artificial intelligence"}],
     )
 
     print(await agent.execute())
@@ -254,11 +254,11 @@ async def main():
 
     agent1 = await AgentFactory.create(
         agent_def=config.agents["simple_search_agent"],
-        task="Research the impact of climate change on the economy",
+        task_messages=[{"role": "user", "content": "Research the impact of climate change on the economy"}],
     )
     agent2 = await AgentFactory.create(
         agent_def=config.agents["writer_agent"],
-        task='What is the existential question of the lyrical hero in Shakespeare\'s "Hamlet"?',
+        task_messages=[{"role": "user", "content": 'What is the existential question of the lyrical hero in Shakespeare\'s "Hamlet"?'}],
     )
 
     print(agent1.config.model_dump_json(indent=2))
