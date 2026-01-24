@@ -218,7 +218,7 @@ tools:
     # base_class defaults to sgr_agent_core.tools.ClarificationTool
   final_answer_tool:
     # base_class defaults to sgr_agent_core.tools.FinalAnswerTool
-  
+
   # Custom tools with explicit base_class
   custom_tool:
     base_class: "tools.CustomTool"  # Relative import path

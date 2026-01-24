@@ -85,7 +85,7 @@ tools:
   # Simple tool definition (uses default base_class from ToolRegistry)
   reasoning_tool:
     # base_class defaults to sgr_agent_core.tools.ReasoningTool
-  
+
   # Custom tool with explicit base_class
   custom_tool:
     base_class: "tools.CustomTool"  # Relative import path
@@ -265,10 +265,10 @@ tools:
 agents:
   file_agent:
     base_class: "SGRToolCallingAgent"
-    
+
     llm:
       model: "gpt-4o-mini"
-    
+
     # Reference tools by name from tools section or ToolRegistry
     tools:
       - "reasoning_tool"  # From tools section
