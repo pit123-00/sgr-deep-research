@@ -31,7 +31,7 @@ class ResearchSGRAgentNoReporting(SGRAgent):
 
     def __init__(
         self,
-        task: str,
+        task_messages: list,
         openai_client: AsyncOpenAI,
         agent_config: AgentConfig,
         toolkit: list[Type[BaseTool]],
@@ -41,7 +41,7 @@ class ResearchSGRAgentNoReporting(SGRAgent):
         # Exclude CreateReportTool from research_toolkit
         research_toolkit = [WebSearchTool, ExtractPageContentTool, FinalAnswerTool]
         super().__init__(
-            task=task,
+            task_messages=task_messages,
             openai_client=openai_client,
             agent_config=agent_config,
             toolkit=research_toolkit + [t for t in toolkit if t not in research_toolkit],
@@ -73,7 +73,7 @@ class ResearchToolCallingAgentNoReporting(ToolCallingAgent):
 
     def __init__(
         self,
-        task: str,
+        task_messages: list,
         openai_client: AsyncOpenAI,
         agent_config: AgentConfig,
         toolkit: list[Type[BaseTool]],
@@ -83,7 +83,7 @@ class ResearchToolCallingAgentNoReporting(ToolCallingAgent):
         # Exclude CreateReportTool from research_toolkit
         research_toolkit = [WebSearchTool, ExtractPageContentTool, FinalAnswerTool]
         super().__init__(
-            task=task,
+            task_messages=task_messages,
             openai_client=openai_client,
             agent_config=agent_config,
             toolkit=research_toolkit + [t for t in toolkit if t not in research_toolkit],
@@ -115,7 +115,7 @@ class ResearchSGRToolCallingAgentNoReporting(SGRToolCallingAgent):
 
     def __init__(
         self,
-        task: str,
+        task_messages: list,
         openai_client: AsyncOpenAI,
         agent_config: AgentConfig,
         toolkit: list[Type[BaseTool]],
@@ -125,7 +125,7 @@ class ResearchSGRToolCallingAgentNoReporting(SGRToolCallingAgent):
         # Exclude CreateReportTool from research_toolkit
         research_toolkit = [WebSearchTool, ExtractPageContentTool, FinalAnswerTool]
         super().__init__(
-            task=task,
+            task_messages=task_messages,
             openai_client=openai_client,
             agent_config=agent_config,
             toolkit=research_toolkit + [t for t in toolkit if t not in research_toolkit],

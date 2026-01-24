@@ -48,7 +48,7 @@ class SGRFileAgent(SGRAgent):
         # Or programmatically:
         agent = SGRFileAgent(
             max_iterations=10,
-            task="Find all PDF files in my Downloads folder from last week",
+            task_messages=[{"role": "user", "content": "Find all PDF files in my Downloads folder from last week"}],
             openai_client=client,
             agent_config=config,
             toolkit=[],
@@ -60,7 +60,7 @@ class SGRFileAgent(SGRAgent):
 
     def __init__(
         self,
-        task: str,
+        task_messages: list,
         openai_client: AsyncOpenAI,
         agent_config: AgentConfig,
         toolkit: list[Type[BaseTool]],
@@ -79,7 +79,7 @@ class SGRFileAgent(SGRAgent):
         merged_toolkit = file_system_tools + [t for t in toolkit if t not in file_system_tools]
 
         super().__init__(
-            task=task,
+            task_messages=task_messages,
             openai_client=openai_client,
             agent_config=agent_config,
             toolkit=merged_toolkit,

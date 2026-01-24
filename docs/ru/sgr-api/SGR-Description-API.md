@@ -70,8 +70,8 @@ ______________________________________________________________________
 **Доступные модели:**
 
 - `sgr_agent` - Чистый SGR (Schema-Guided Reasoning)
-- `sgr_tools_agent` - SGR + Function Calling гибрид
-- `tools_agent` - Чистый Function Calling
+- `sgr_tool_calling_agent` - SGR + Function Calling гибрид
+- `tool_calling_agent` - Чистый Function Calling
 
 **Пример:**
 

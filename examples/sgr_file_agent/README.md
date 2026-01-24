@@ -61,7 +61,10 @@ agent_def = config.agents["sgr_file_agent"]
 # Create and run agent
 async def main():
     agent = await AgentFactory.create(
-        agent_def, task="Find all Python files in the project"
+        agent_def,
+        task_messages=[
+            {"role": "user", "content": "Find all Python files in the project"}
+        ],
     )
 
     # working_directory is automatically set from config if specified
