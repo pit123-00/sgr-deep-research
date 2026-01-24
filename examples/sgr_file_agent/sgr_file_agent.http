@@ -1,0 +1,54 @@
+### SGR File Agent API Tests
+### ============================================
+### This file contains HTTP requests for testing the SGR File Agent
+### Use REST Client extension in VS Code to execute these requests
+###
+### Prerequisites:
+### 1. Install REST Client extension in VS Code
+### 2. Start server: sgr --config-file examples/sgr_file_agent/config.yaml
+### 3. Click "Send Request" above any request to execute it
+###
+### Response Headers:
+### - X-Agent-ID: Agent identifier (use for state/clarification requests)
+### - X-Agent-Model: Model name used
+###
+### ============================================
+
+@baseUrl = http://localhost:8010
+@agentModel = sgr_file_agent
+
+### Variables (update these as needed)
+### Replace {{agentId}} with actual agent ID from X-Agent-ID response header
+@agentId = sgr_file_agent_12345678-1234-1234-1234-123456789012
+
+###############################################################################
+# Health Check & Info
+###############################################################################
+
+### Health Check
+GET {{baseUrl}}/health
+
+### Get Available Models (Agents)
+GET {{baseUrl}}/v1/models
+
+### Get Agents List
+GET {{baseUrl}}/agents
+
+###############################################################################
+# File Agent - Basic Operations
+###############################################################################
+
+POST {{baseUrl}}/v1/chat/completions
+Content-Type: application/json
+
+{
+  "model": "{{agentModel}}",
+  "messages": [
+    {
+      "role": "user",
+      "content": "Find all Python files in the current directory"
+    }
+  ],
+  "stream": true,
+  "temperature": 0.4
+}

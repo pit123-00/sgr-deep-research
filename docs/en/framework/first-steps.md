@@ -40,7 +40,7 @@ async def main():
 
     # Create agent directly
     agent = SGRToolCallingAgent(
-        task="Write a forecast of the main trends in the development of artificial intelligence",
+        task_messages=[{"role": "user", "content": "Write a forecast of the main trends in the development of artificial intelligence"}],
         openai_client=openai_client,
         agent_config=agent_config,
         toolkit=toolkit,
@@ -172,7 +172,7 @@ async def main():
     # Create agent through Factory
     agent = await AgentFactory.create(
         agent_def=agent_def,
-        task="Write a forecast of the main trends in the development of artificial intelligence",
+        task_messages=[{"role": "user", "content": "Write a forecast of the main trends in the development of artificial intelligence"}],
     )
 
     print(await agent.execute())
@@ -207,19 +207,44 @@ llm:
 execution:
   max_clarifications: 3
   max_iterations: 7
+
+# Tool Definitions (optional)
+# Tools can be defined here and referenced by name in agents
+tools:
+  # Core tools (base_class defaults to sgr_agent_core.tools.*)
+  reasoning_tool:
+    # base_class defaults to sgr_agent_core.tools.ReasoningTool
+  clarification_tool:
+    # base_class defaults to sgr_agent_core.tools.ClarificationTool
+  final_answer_tool:
+    # base_class defaults to sgr_agent_core.tools.FinalAnswerTool
+
+  # Custom tools with explicit base_class
+  custom_tool:
+    base_class: "tools.CustomTool"  # Relative import path
 ```
 
 **agents.yaml**
 
 ```yaml
+# Tool Definitions (optional, can also be in config.yaml)
+tools:
+  # Tools can be defined here or in config.yaml
+  # If not defined, tools are resolved from ToolRegistry by name
+
 agents:
   simple_search_agent:
     base_class: "ResearchSGRToolCallingAgent"
     llm:
       model: "gpt-4.1-mini"
+    # Tools can be referenced by:
+    # 1. Name from tools section (if defined)
+    # 2. Name from ToolRegistry (e.g., "WebSearchTool")
+    # 3. Snake_case names are auto-converted to PascalCase
     tools:
-      - "WebSearchTool"
-      - "FinalAnswerTool"
+      - "WebSearchTool"  # From ToolRegistry
+      - "FinalAnswerTool"  # From ToolRegistry
+      # - "custom_tool"  # From tools section (if defined)
     search:
       tavily_api_key: "___"
       max_results: 5
@@ -239,6 +264,12 @@ agents:
     The contents of agents.yaml can be placed directly in config.yaml to have a single configuration file,
     it will be applied by the `GlobalConfig.from_yaml("config.yaml")` command
 
+!!! note "Tool Resolution Order"
+    When resolving tools, the system checks in this order:
+    1. Tools defined in `tools:` section (by name)
+    2. Tools registered in `ToolRegistry` (by name or PascalCase class name)
+    3. Auto-conversion from snake_case to PascalCase (e.g., `web_search_tool` → `WebSearchTool`)
+
 ```python
 import asyncio
 import logging
@@ -254,11 +285,11 @@ async def main():
 
     agent1 = await AgentFactory.create(
         agent_def=config.agents["simple_search_agent"],
-        task="Research the impact of climate change on the economy",
+        task_messages=[{"role": "user", "content": "Research the impact of climate change on the economy"}],
     )
     agent2 = await AgentFactory.create(
         agent_def=config.agents["writer_agent"],
-        task='What is the existential question of the lyrical hero in Shakespeare\'s "Hamlet"?',
+        task_messages=[{"role": "user", "content": 'What is the existential question of the lyrical hero in Shakespeare\'s "Hamlet"?'}],
     )
 
     print(agent1.config.model_dump_json(indent=2))

@@ -51,13 +51,13 @@ Retrieve a list of available agent models.
 {
   "data": [
     {
-      "id": "sgr-agent",
+      "id": "sgr_agent",
       "object": "model",
       "created": 1234567890,
       "owned_by": "sgr-deep-research"
     },
     {
-      "id": "sgr-tools-agent",
+      "id": "sgr_tools_agent",
       "object": "model",
       "created": 1234567890,
       "owned_by": "sgr-deep-research"
@@ -69,11 +69,9 @@ Retrieve a list of available agent models.
 
 **Available Models:**
 
-- `sgr-agent` - Pure SGR (Schema-Guided Reasoning)
-- `sgr-tools-agent` - SGR + Function Calling hybrid
-- `sgr-auto-tools-agent` - SGR + Auto Function Calling
-- `sgr-so-tools-agent` - SGR + Structured Output
-- `tools-agent` - Pure Function Calling
+- `sgr_agent` - Pure SGR (Schema-Guided Reasoning)
+- `sgr_tool_calling_agent` - SGR + Function Calling hybrid
+- `tool_calling_agent` - Pure Function Calling
 
 **Example:**
 
@@ -96,7 +94,7 @@ Create a chat completion for research tasks. This is the main endpoint for inter
 
 ```json
 {
-  "model": "sgr-agent",
+  "model": "sgr_agent",
   "messages": [
     {
       "role": "user",
@@ -133,7 +131,7 @@ The response is streamed as Server-Sent Events (SSE) with real-time updates.
 curl -X POST "http://localhost:8010/v1/chat/completions" \
   -H "Content-Type: application/json" \
   -d '{
-    "model": "sgr-agent",
+    "model": "sgr_agent",
     "messages": [{"role": "user", "content": "Research AI market trends"}],
     "stream": true,
     "temperature": 0
@@ -146,7 +144,7 @@ curl -X POST "http://localhost:8010/v1/chat/completions" \
 curl -X POST "http://localhost:8010/v1/chat/completions" \
   -H "Content-Type: application/json" \
   -d '{
-    "model": "sgr-agent",
+    "model": "sgr_agent",
     "messages": [{
       "role": "user",
       "content": [
@@ -164,7 +162,7 @@ curl -X POST "http://localhost:8010/v1/chat/completions" \
 curl -X POST "http://localhost:8010/v1/chat/completions" \
   -H "Content-Type: application/json" \
   -d '{
-    "model": "sgr-agent",
+    "model": "sgr_agent",
     "messages": [{
       "role": "user",
       "content": [

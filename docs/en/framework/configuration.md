@@ -71,6 +71,45 @@ An example can be found in [`config.yaml.example`](https://github.com/vamplabAI/
 
 **Key Feature:** `AgentDefinition` inherits all parameters from `GlobalConfig` and overrides only those explicitly specified. This allows creating minimal configurations by specifying only necessary changes.
 
+### Tool Definitions
+
+Tools can be defined in a separate `tools:` section in `config.yaml` or `agents.yaml`. This allows you to:
+- Define custom tools with specific configurations
+- Reference tools by name in agent definitions
+- Override default tool classes
+
+**Tool Definition Format:**
+
+```yaml
+tools:
+  # Simple tool definition (uses default base_class from ToolRegistry)
+  reasoning_tool:
+    # base_class defaults to sgr_agent_core.tools.ReasoningTool
+
+  # Custom tool with explicit base_class
+  custom_tool:
+    base_class: "tools.CustomTool"  # Relative import path
+    # Additional tool-specific parameters can be added here
+```
+
+**Using Tools in Agents:**
+
+```yaml
+agents:
+  my_agent:
+    base_class: "SGRToolCallingAgent"
+    tools:
+      - "WebSearchTool"  # From ToolRegistry
+      - "reasoning_tool"  # From tools section
+      - "custom_tool"  # From tools section
+```
+
+!!! note "Tool Resolution Order"
+    When resolving tools, the system checks in this order:
+    1. Tools defined in `tools:` section (by name)
+    2. Tools registered in `ToolRegistry` (by name or PascalCase class name)
+    3. Auto-conversion from snake_case to PascalCase (e.g., `web_search_tool` → `WebSearchTool`)
+
 ### Agent Configuration Examples
 
 Agents are defined in the `agents.yaml` file or can be loaded programmatically:
@@ -209,6 +248,32 @@ agents:
       - "CreateReportTool"
       - "ClarificationTool"
       - "FinalAnswerTool"
+```
+
+#### Example 5: With Tool Definitions
+
+An agent using custom tool definitions:
+
+```yaml
+# Define tools in tools section
+tools:
+  reasoning_tool:
+    # Uses default: sgr_agent_core.tools.ReasoningTool
+  custom_file_tool:
+    base_class: "tools.CustomFileTool"  # Custom tool from local module
+
+agents:
+  file_agent:
+    base_class: "SGRToolCallingAgent"
+
+    llm:
+      model: "gpt-4o-mini"
+
+    # Reference tools by name from tools section or ToolRegistry
+    tools:
+      - "reasoning_tool"  # From tools section
+      - "custom_file_tool"  # From tools section
+      - "FinalAnswerTool"  # From ToolRegistry
 ```
 
 ## Recommendations

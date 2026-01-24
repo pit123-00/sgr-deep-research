@@ -23,7 +23,7 @@ client = OpenAI(
 
 # Выполнить исследовательский запрос
 response = client.chat.completions.create(
-    model="sgr-agent",
+    model="sgr_agent",
     messages=[{"role": "user", "content": "Research BMW X6 2025 prices in Russia"}],
     stream=True,
     temperature=0.4,
@@ -48,7 +48,7 @@ client = OpenAI(base_url="http://localhost:8010/v1", api_key="dummy")
 # Шаг 1: Начальный исследовательский запрос
 print("Начало исследования...")
 response = client.chat.completions.create(
-    model="sgr-agent",
+    model="sgr_agent",
     messages=[{"role": "user", "content": "Research AI market trends"}],
     stream=True,
     temperature=0,
@@ -118,7 +118,7 @@ with open("chart.png", "rb") as image_file:
 
 # Исследовательский запрос с локальным изображением
 response = client.chat.completions.create(
-    model="sgr-agent",
+    model="sgr_agent",
     messages=[{
         "role": "user",
         "content": [

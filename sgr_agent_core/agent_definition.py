@@ -4,13 +4,48 @@ import logging
 import os
 from functools import cached_property
 from pathlib import Path
-from typing import Any, Self
+from typing import Any, Self, Union
 
 import yaml
 from fastmcp.mcp_config import MCPConfig
 from pydantic import BaseModel, Field, FilePath, ImportString, computed_field, field_validator, model_validator
 
 logger = logging.getLogger(__name__)
+
+
+def validate_import_string_points_to_file(import_string: Any) -> Any:
+    """Ensure ImportString based value points to an existing file.
+
+    A dotted path indicates an import string (e.g., tools.ReadFileTool).
+    We use importlib to automatically search for the module in sys.path.
+
+    Args:
+        import_string: The import string to validate
+
+    Returns:
+        The validated import string
+
+    Raises:
+        FileNotFoundError: If the module cannot be found in sys.path
+    """
+    if isinstance(import_string, str) and "." in import_string:
+        module_parts = import_string.split(".")
+        if len(module_parts) >= 2:
+            # Get module path (everything except the class name)
+            module_path = ".".join(module_parts[:-1])
+            # Use importlib to find module in sys.path automatically
+            try:
+                spec = importlib.util.find_spec(module_path)
+                if spec is None or spec.origin is None:
+                    raise ModuleNotFoundError()
+            except ModuleNotFoundError as e:
+                # Convert ModuleNotFoundError to FileNotFoundError for consistency
+                file_path = Path(*module_parts[:-1]).with_suffix(".py")
+                raise FileNotFoundError(
+                    f"base_class import '{import_string}' points to '{file_path}', "
+                    f"but the file could not be found in sys.path"
+                ) from e
+    return import_string
 
 
 class LLMConfig(BaseModel, extra="allow"):
@@ -113,7 +148,13 @@ class ExecutionConfig(BaseModel, extra="allow"):
     reports_dir: str = Field(default="reports", description="Directory for saving reports")
 
 
-class AgentConfig(BaseModel):
+class AgentConfig(BaseModel, extra="allow"):
+    """Agent configuration with all settings.
+
+    The 'extra="allow"' allows additional fields for agent-specific
+    parameters (e.g., working_directory for file agents).
+    """
+
     llm: LLMConfig = Field(default_factory=LLMConfig, description="LLM settings")
     search: SearchConfig | None = Field(default=None, description="Search settings")
     execution: ExecutionConfig = Field(default_factory=ExecutionConfig, description="Execution settings")
@@ -145,20 +186,7 @@ class AgentDefinition(AgentConfig):
         dir.agent.MyAgent). We use importlib to automatically search for
         the module in sys.path.
         """
-        if isinstance(v, str) and "." in v:
-            module_parts = v.split(".")
-            if len(module_parts) >= 2:
-                # Get module path (everything except the class name)
-                module_path = ".".join(module_parts[:-1])
-                # Use importlib to find module in sys.path automatically
-                spec = importlib.util.find_spec(module_path)
-                if spec is None or spec.origin is None:
-                    file_path = Path(*module_parts[:-1]).with_suffix(".py")
-                    raise FileNotFoundError(
-                        f"base_class import '{v}' points to '{file_path}', "
-                        f"but the file could not be found in sys.path"
-                    )
-        return v
+        return validate_import_string_points_to_file(v)
 
     @model_validator(mode="before")
     def default_config_override_validator(cls, data):
@@ -217,7 +245,50 @@ class AgentDefinition(AgentConfig):
             raise FileNotFoundError(f"Agent definition file not found: {yaml_path}") from e
 
 
+class ToolDefinition(BaseModel):
+    """Definition of a custom tool.
+
+    Tools can be defined with:
+    - base_class: Import string or class name (optional, defaults to sgr_agent_core.tools.{ToolName})
+    - Any additional parameters for the tool
+    """
+
+    name: str = Field(description="Unique tool name/ID")
+    base_class: Union[type[Any], ImportString, str, None] = Field(
+        default=None, description="Tool class name (optional, defaults to sgr_agent_core.tools.{name})"
+    )
+
+    @field_validator("base_class", mode="before")
+    def base_class_import_points_to_file(cls, v: Any) -> Any:
+        """Ensure ImportString based base_class points to an existing file.
+
+        A dotted path indicates an import string (e.g.,
+        tools.ReadFileTool). We use importlib to automatically search
+        for the module in sys.path.
+        """
+        return validate_import_string_points_to_file(v)
+
+    @field_validator("base_class", mode="after")
+    def base_class_is_tool(cls, v: Any) -> Union[type[Any], None]:
+        # Don't validate at definition time - validation happens when tool is actually used
+        # This allows relative imports to work correctly
+        if v is None:
+            return None
+        # Only validate if it's already a class
+        if inspect.isclass(v):
+            from sgr_agent_core.base_tool import BaseTool
+
+            if not issubclass(v, BaseTool):
+                raise TypeError("Imported base_class must be a subclass of BaseTool")
+        return v
+
+    def __str__(self) -> str:
+        base_class_name = self.base_class.__name__ if isinstance(self.base_class, type) else self.base_class
+        return f"ToolDefinition(name='{self.name}', base_class={base_class_name})"
+
+
 class Definitions(BaseModel):
     agents: dict[str, AgentDefinition] = Field(
         default_factory=dict, description="Dictionary of agent definitions by name"
     )
+    tools: dict[str, ToolDefinition] = Field(default_factory=dict, description="Dictionary of tool definitions by name")

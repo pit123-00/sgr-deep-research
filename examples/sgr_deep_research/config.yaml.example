@@ -32,6 +32,26 @@ mcp:
     deepwiki:
       url: "https://mcp.deepwiki.com/mcp"
 
+# Tool Definitions
+tools:
+  # Core tools (base_class defaults to sgr_agent_core.tools.*)
+  web_search_tool:
+    # base_class defaults to sgr_agent_core.tools.WebSearchTool
+  extract_page_content_tool:
+    # base_class defaults to sgr_agent_core.tools.ExtractPageContentTool
+  create_report_tool:
+    # base_class defaults to sgr_agent_core.tools.CreateReportTool
+  final_answer_tool:
+    # base_class defaults to sgr_agent_core.tools.FinalAnswerTool
+  clarification_tool:
+    # base_class defaults to sgr_agent_core.tools.ClarificationTool
+  generate_plan_tool:
+    # base_class defaults to sgr_agent_core.tools.GeneratePlanTool
+  adapt_plan_tool:
+    # base_class defaults to sgr_agent_core.tools.AdaptPlanTool
+  reasoning_tool:
+    # base_class defaults to sgr_agent_core.tools.ReasoningTool
+
 # Agent Definitions
 agents:
   # SGR Agent for research
@@ -41,13 +61,13 @@ agents:
       model: "gpt-4o-mini"
       temperature: 0.4
     tools:
-      - "WebSearchTool"
-      - "ExtractPageContentTool"
-      - "CreateReportTool"
-      - "FinalAnswerTool"
-      - "ClarificationTool"
-      - "GeneratePlanTool"
-      - "AdaptPlanTool"
+      - "web_search_tool"
+      - "extract_page_content_tool"
+      - "create_report_tool"
+      - "final_answer_tool"
+      - "clarification_tool"
+      - "generate_plan_tool"
+      - "adapt_plan_tool"
 
   # Tool Calling Agent for research
   tool_calling_agent:
@@ -56,13 +76,13 @@ agents:
       model: "gpt-4o-mini"
       temperature: 0.4
     tools:
-      - "WebSearchTool"
-      - "ExtractPageContentTool"
-      - "CreateReportTool"
-      - "FinalAnswerTool"
-      - "ClarificationTool"
-      - "GeneratePlanTool"
-      - "AdaptPlanTool"
+      - "web_search_tool"
+      - "extract_page_content_tool"
+      - "create_report_tool"
+      - "final_answer_tool"
+      - "clarification_tool"
+      - "generate_plan_tool"
+      - "adapt_plan_tool"
 
   # SGR Tool Calling Agent for research
   sgr_tool_calling_agent:
@@ -71,11 +91,11 @@ agents:
       model: "gpt-4o-mini"
       temperature: 0.4
     tools:
-      - "WebSearchTool"
-      - "ExtractPageContentTool"
-      - "CreateReportTool"
-      - "FinalAnswerTool"
-      - "ClarificationTool"
-      - "ReasoningTool"
-      - "GeneratePlanTool"
-      - "AdaptPlanTool"
+      - "web_search_tool"
+      - "extract_page_content_tool"
+      - "create_report_tool"
+      - "final_answer_tool"
+      - "clarification_tool"
+      - "reasoning_tool"
+      - "generate_plan_tool"
+      - "adapt_plan_tool"
