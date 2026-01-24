@@ -99,7 +99,78 @@ After starting both backend and frontend, you can access:
 
 ## Docker Deployment
 
-### Environment Variables
+### Using Pre-built Docker Image
+
+The project provides pre-built Docker images published to GitHub Container Registry (ghcr.io). You can use these images directly without building from source.
+
+#### Pull and Run the Image
+
+```bash
+# Pull the latest image
+docker pull ghcr.io/vamplabai/sgr-agent-core:latest
+
+# Run the container
+docker run -d \
+  --name sgr-agent-backend \
+  -p 8010:8010 \
+  -v $(pwd)/config.yaml:/app/config.yaml:ro \
+  -v $(pwd)/agents.yaml:/app/agents.yaml:ro \
+  -v $(pwd)/logs:/app/logs \
+  -v $(pwd)/reports:/app/reports \
+  ghcr.io/vamplabai/sgr-agent-core:latest
+```
+
+#### Using Specific Version
+
+You can also use a specific version tag:
+
+```bash
+# Pull a specific version
+docker pull ghcr.io/vamplabai/sgr-agent-core:v1.0.0
+
+# Run with specific version
+docker run -d \
+  --name sgr-agent-backend \
+  -p 8010:8010 \
+  -v $(pwd)/config.yaml:/app/config.yaml:ro \
+  -v $(pwd)/agents.yaml:/app/agents.yaml:ro \
+  -v $(pwd)/logs:/app/logs \
+  -v $(pwd)/reports:/app/reports \
+  ghcr.io/vamplabai/sgr-agent-core:v1.0.0
+```
+
+#### Custom Configuration
+
+You can override the default configuration file path:
+
+```bash
+docker run -d \
+  --name sgr-agent-backend \
+  -p 8010:8010 \
+  -e CONFIG_FILE=/app/config.yaml \
+  -v $(pwd)/my-config.yaml:/app/config.yaml:ro \
+  -v $(pwd)/my-agents.yaml:/app/agents.yaml:ro \
+  -v $(pwd)/logs:/app/logs \
+  -v $(pwd)/reports:/app/reports \
+  ghcr.io/vamplabai/sgr-agent-core:latest \
+  --config-file /app/config.yaml \
+  --agents-file /app/agents.yaml
+```
+
+#### Access URLs (Pre-built Image)
+
+After starting the container, you can access:
+
+- **Backend API:** http://localhost:8010
+  - Health check: http://localhost:8010/health
+  - Agents endpoint: http://localhost:8010/agents
+  - API endpoints: http://localhost:8010/v1/\*
+
+### Building from Source
+
+If you need to build the Docker image from source, you can use Docker Compose.
+
+#### Environment Variables
 
 Before deploying, you can configure the following environment variables (optional):
 
@@ -108,11 +179,11 @@ Before deploying, you can configure the following environment variables (optiona
 - `FRONTEND_PORT` - Port for the frontend service (default: `5173`)
 - `BACKEND_PORT` - Port for the backend service (default: `8010`)
 
-### Deployment Steps
+#### Deployment Steps
 
 ```bash
-# 1. Go to the services folder
-cd services
+# 1. Copy docker-compose.dist.yaml to docker-compose.yaml
+cp docker-compose.dist.yaml docker-compose.yaml
 
 # 2. Building docker images
 docker-compose build
@@ -121,7 +192,7 @@ docker-compose build
 docker-compose up -d
 ```
 
-### Access URLs (Docker Deployment)
+#### Access URLs (Docker Compose)
 
 After deployment, you can access:
 
