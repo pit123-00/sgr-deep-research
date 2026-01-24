@@ -23,7 +23,7 @@ client = OpenAI(
 
 # Make research request
 response = client.chat.completions.create(
-    model="sgr-agent",
+    model="sgr_agent",
     messages=[{"role": "user", "content": "Research BMW X6 2025 prices in Russia"}],
     stream=True,
     temperature=0.4,
@@ -48,7 +48,7 @@ client = OpenAI(base_url="http://localhost:8010/v1", api_key="dummy")
 # Step 1: Initial research request
 print("Starting research...")
 response = client.chat.completions.create(
-    model="sgr-agent",
+    model="sgr_agent",
     messages=[{"role": "user", "content": "Research AI market trends"}],
     stream=True,
     temperature=0,
@@ -118,7 +118,7 @@ with open("chart.png", "rb") as image_file:
 
 # Research request with local image
 response = client.chat.completions.create(
-    model="sgr-agent",
+    model="sgr_agent",
     messages=[{
         "role": "user",
         "content": [
