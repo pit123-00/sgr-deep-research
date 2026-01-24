@@ -174,10 +174,8 @@ class AgentDefinition(AgentConfig):
 
     name: str = Field(description="Unique agent name/ID")
     # ToDo: not sure how to type this properly and avoid circular imports
-    base_class: Union[type[Any], ImportString, str] = Field(description="Agent class name")
-    tools: list[Union[type[Any], str, "ToolDefinition"]] = Field(
-        default_factory=list, description="List of tool names to include"
-    )
+    base_class: type[Any] | ImportString | str = Field(description="Agent class name")
+    tools: list[type[Any] | str] = Field(default_factory=list, description="List of tool names to include")
 
     @field_validator("base_class", mode="before")
     def base_class_import_points_to_file(cls, v: Any) -> Any:

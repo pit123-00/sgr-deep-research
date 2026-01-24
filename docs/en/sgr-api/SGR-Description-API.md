@@ -133,7 +133,7 @@ The response is streamed as Server-Sent Events (SSE) with real-time updates.
 curl -X POST "http://localhost:8010/v1/chat/completions" \
   -H "Content-Type: application/json" \
   -d '{
-    "model": "sgr-agent",
+    "model": "sgr_agent",
     "messages": [{"role": "user", "content": "Research AI market trends"}],
     "stream": true,
     "temperature": 0
@@ -146,7 +146,7 @@ curl -X POST "http://localhost:8010/v1/chat/completions" \
 curl -X POST "http://localhost:8010/v1/chat/completions" \
   -H "Content-Type: application/json" \
   -d '{
-    "model": "sgr-agent",
+    "model": "sgr_agent",
     "messages": [{
       "role": "user",
       "content": [
@@ -164,7 +164,7 @@ curl -X POST "http://localhost:8010/v1/chat/completions" \
 curl -X POST "http://localhost:8010/v1/chat/completions" \
   -H "Content-Type: application/json" \
   -d '{
-    "model": "sgr-agent",
+    "model": "sgr_agent",
     "messages": [{
       "role": "user",
       "content": [
