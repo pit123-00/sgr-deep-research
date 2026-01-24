@@ -99,7 +99,78 @@ VITE_API_BASE_URL=http://localhost:8010 npm run dev
 
 ## Развертывание Docker
 
-### Переменные окружения
+### Использование готового Docker-образа
+
+Проект предоставляет готовые Docker-образы, опубликованные в GitHub Container Registry (ghcr.io). Вы можете использовать эти образы напрямую без сборки из исходного кода.
+
+#### Загрузка и запуск образа
+
+```bash
+# Загрузить последний образ
+docker pull ghcr.io/vamplabai/sgr-agent-core:latest
+
+# Запустить контейнер
+docker run -d \
+  --name sgr-agent-backend \
+  -p 8010:8010 \
+  -v $(pwd)/config.yaml:/app/config.yaml:ro \
+  -v $(pwd)/agents.yaml:/app/agents.yaml:ro \
+  -v $(pwd)/logs:/app/logs \
+  -v $(pwd)/reports:/app/reports \
+  ghcr.io/vamplabai/sgr-agent-core:latest
+```
+
+#### Использование конкретной версии
+
+Вы также можете использовать конкретную версию:
+
+```bash
+# Загрузить конкретную версию
+docker pull ghcr.io/vamplabai/sgr-agent-core:v1.0.0
+
+# Запустить с конкретной версией
+docker run -d \
+  --name sgr-agent-backend \
+  -p 8010:8010 \
+  -v $(pwd)/config.yaml:/app/config.yaml:ro \
+  -v $(pwd)/agents.yaml:/app/agents.yaml:ro \
+  -v $(pwd)/logs:/app/logs \
+  -v $(pwd)/reports:/app/reports \
+  ghcr.io/vamplabai/sgr-agent-core:v1.0.0
+```
+
+#### Пользовательская конфигурация
+
+Вы можете переопределить путь к файлу конфигурации по умолчанию:
+
+```bash
+docker run -d \
+  --name sgr-agent-backend \
+  -p 8010:8010 \
+  -e CONFIG_FILE=/app/config.yaml \
+  -v $(pwd)/my-config.yaml:/app/config.yaml:ro \
+  -v $(pwd)/my-agents.yaml:/app/agents.yaml:ro \
+  -v $(pwd)/logs:/app/logs \
+  -v $(pwd)/reports:/app/reports \
+  ghcr.io/vamplabai/sgr-agent-core:latest \
+  --config-file /app/config.yaml \
+  --agents-file /app/agents.yaml
+```
+
+#### URL для доступа (Готовый образ)
+
+После запуска контейнера вы можете получить доступ:
+
+- **Backend API:** http://localhost:8010
+  - Проверка здоровья: http://localhost:8010/health
+  - Endpoint агентов: http://localhost:8010/agents
+  - API endpoints: http://localhost:8010/v1/\*
+
+### Сборка из исходного кода
+
+Если вам нужно собрать Docker-образ из исходного кода, вы можете использовать Docker Compose.
+
+#### Переменные окружения
 
 Перед развертыванием вы можете настроить следующие переменные окружения (опционально):
 
@@ -108,11 +179,11 @@ VITE_API_BASE_URL=http://localhost:8010 npm run dev
 - `FRONTEND_PORT` - Порт для frontend сервиса (по умолчанию: `5173`)
 - `BACKEND_PORT` - Порт для backend сервиса (по умолчанию: `8010`)
 
-### Шаги развертывания
+#### Шаги развертывания
 
 ```bash
-# 1. Перейдите в папку services
-cd services
+# 1. Скопируйте docker-compose.dist.yaml в docker-compose.yaml
+cp docker-compose.dist.yaml docker-compose.yaml
 
 # 2. Сборка docker образов
 docker-compose build
@@ -121,7 +192,7 @@ docker-compose build
 docker-compose up -d
 ```
 
-### URL для доступа (Развертывание Docker)
+#### URL для доступа (Docker Compose)
 
 После развертывания вы можете получить доступ:
 

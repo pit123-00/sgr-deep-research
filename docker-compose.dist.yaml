@@ -6,6 +6,7 @@ x-shared-logs: &shared-logs
 
 services:
   backend:
+    #image: ghcr.io/vamplabai/sgr-agent-core:latest
     build:
       context: .
       dockerfile: Dockerfile
