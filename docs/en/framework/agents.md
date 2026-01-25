@@ -131,8 +131,8 @@ agents:
       retry_count: 5
       enable_caching: true
     tools:
-      - "WebSearchTool"
-      - "FinalAnswerTool"
+      - "web_search_tool"
+      - "final_answer_tool"
 ```
 
 **Example 2: Using custom fields in AgentDefinition**

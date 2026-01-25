@@ -239,11 +239,11 @@ agents:
       model: "gpt-4.1-mini"
     # Tools can be referenced by:
     # 1. Name from tools section (if defined)
-    # 2. Name from ToolRegistry (e.g., "WebSearchTool")
-    # 3. Snake_case names are auto-converted to PascalCase
+    # 2. Name in snake_case format (recommended, e.g., "web_search_tool")
+    # 3. PascalCase format for backward compatibility (e.g., "WebSearchTool")
     tools:
-      - "WebSearchTool"  # From ToolRegistry
-      - "FinalAnswerTool"  # From ToolRegistry
+      - "web_search_tool"  # Recommended: snake_case format
+      - "final_answer_tool"  # Recommended: snake_case format
       # - "custom_tool"  # From tools section (if defined)
     search:
       tavily_api_key: "___"
@@ -255,7 +255,7 @@ agents:
     llm:
       temperature: 0.8
     tools:
-      - "FinalAnswerTool"
+      - "final_answer_tool"
     prompts:
       system_prompt_str: "You are a renowned writer. Write a brief essay on the given topic."
 ```

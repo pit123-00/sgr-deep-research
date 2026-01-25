@@ -131,8 +131,8 @@ agents:
       retry_count: 5
       enable_caching: true
     tools:
-      - "WebSearchTool"
-      - "FinalAnswerTool"
+      - "web_search_tool"
+      - "final_answer_tool"
 ```
 
 **Пример 2: Использование кастомных полей в AgentDefinition**

@@ -55,7 +55,7 @@ To create a custom tool:
 3. Implement the `__call__` method
 4. Optionally set `tool_name` and `description` class variables
 
-Example:
+**Example: Basic Custom Tool**
 
 ```python
 from sgr_agent_core.base_tool import BaseTool
@@ -81,7 +81,53 @@ class CustomTool(BaseTool):
         return result
 ```
 
-The tool will be automatically registered and available for use in agent configurations.
+The tool will be automatically registered in `ToolRegistry` when the class is defined and can be used in agent configurations.
+
+### Using Custom Tools in Configuration
+
+Once you've created a custom tool, you can use it in your configuration in two ways:
+
+**Method 1: Direct Reference (if tool is imported and registered)**
+
+If your custom tool is imported before agent creation, it will be automatically registered and can be referenced by name:
+
+```yaml
+agents:
+  my_agent:
+    base_class: "SGRToolCallingAgent"
+    tools:
+      - "custom_tool"  # Direct reference to registered tool
+      - "web_search_tool"
+```
+
+**Method 2: Define in tools section with base_class**
+
+You can define custom tools in the `tools:` section and specify the `base_class`:
+
+```yaml
+tools:
+  # Custom tool with explicit base_class
+  custom_tool:
+    base_class: "tools.CustomTool"  # Relative import path
+    # Or use full path:
+    # base_class: "my_package.tools.CustomTool"
+
+agents:
+  my_agent:
+    base_class: "SGRToolCallingAgent"
+    tools:
+      - "custom_tool"  # Reference by name from tools section
+      - "web_search_tool"
+```
+
+**Important Notes:**
+
+- Custom tools must be imported before agent creation to be automatically registered
+- When using `base_class` in tool definitions, you can use:
+  - Relative import paths (e.g., `"tools.CustomTool"`) - resolved relative to the config file location
+  - Full import paths (e.g., `"my_package.tools.CustomTool"`) - resolved from Python's `sys.path`
+  - Class names (e.g., `"CustomTool"`) - resolved from `ToolRegistry`
+- Tools defined in the `tools:` section take precedence over tools in `ToolRegistry`
 
 ## System Tools
 
@@ -140,7 +186,7 @@ No specific configuration required.
 
 ```yaml
 execution:
-  max_iterations: 10  # After this limit, only FinalAnswerTool and CreateReportTool are available
+  max_iterations: 10  # After this limit, only final_answer_tool and create_report_tool are available
 ```
 
 ### CreateReportTool
@@ -321,7 +367,7 @@ agents:
       max_searches: 6
       max_results: 15
     tools:
-      - "WebSearchTool"
+      - "web_search_tool"
 ```
 
 ### ExtractPageContentTool
@@ -344,7 +390,7 @@ Extracts full detailed content from specific web pages using Tavily Extract API.
 - Returns formatted string with extracted content preview (limited by `content_limit`)
 
 **Usage:**
-Call after WebSearchTool to get detailed information from promising URLs found in search results.
+Call after `web_search_tool` to get detailed information from promising URLs found in search results.
 
 **Important Warnings:**
 
@@ -370,26 +416,37 @@ agents:
     search:
       content_limit: 2000  # Increase content limit for more detailed extraction
     tools:
-      - "WebSearchTool"
-      - "ExtractPageContentTool"
+      - "web_search_tool"
+      - "extract_page_content_tool"
 ```
 
-## Tool Configuration in Agents
+## Tool Configuration
 
-Tools are configured per agent in the `agents.yaml` file or agent definitions:
+### Configuring Tools in Agents
+
+Tools are configured per agent in the `agents.yaml` file or agent definitions. You can reference tools in three ways:
+
+1. **By name in snake_case** - Use snake_case format (e.g., `"web_search_tool"`) - **recommended**
+2. **By name from tools section** - Define tools in a `tools:` section and reference them by name
+3. **By PascalCase class name** - Use PascalCase format (e.g., `"WebSearchTool"`) - **for backward compatibility**
+
+!!! note "Tool Naming"
+    The recommended format is **snake_case** (e.g., `web_search_tool`). PascalCase format (e.g., `WebSearchTool`) is supported for backward compatibility but snake_case is preferred.
+
+**Example: Basic Tool Configuration**
 
 ```yaml
 agents:
   my_agent:
     base_class: "SGRAgent"
     tools:
-      - "WebSearchTool"
-      - "ExtractPageContentTool"
-      - "CreateReportTool"
-      - "ClarificationTool"
-      - "GeneratePlanTool"
-      - "AdaptPlanTool"
-      - "FinalAnswerTool"
+      - "web_search_tool"
+      - "extract_page_content_tool"
+      - "create_report_tool"
+      - "clarification_tool"
+      - "generate_plan_tool"
+      - "adapt_plan_tool"
+      - "final_answer_tool"
     execution:
       max_clarifications: 3
       max_iterations: 10
@@ -399,13 +456,60 @@ agents:
       content_limit: 1500
 ```
 
+### Defining Tools in Configuration
+
+You can define tools in a separate `tools:` section in `config.yaml` or `agents.yaml`. This allows you to:
+
+- Define custom tools with specific configurations
+- Reference tools by name in agent definitions
+- Override default tool classes using `base_class`
+
+**Tool Definition Format:**
+
+```yaml
+tools:
+  # Simple tool definition (uses default base_class from ToolRegistry)
+  reasoning_tool:
+    # base_class defaults to sgr_agent_core.tools.ReasoningTool
+
+  # Custom tool with explicit base_class
+  custom_tool:
+    base_class: "tools.CustomTool"  # Relative import path or full path
+    # Additional tool-specific parameters can be added here
+```
+
+**Using Defined Tools in Agents:**
+
+```yaml
+tools:
+  reasoning_tool:
+    # Uses default: sgr_agent_core.tools.ReasoningTool
+  custom_file_tool:
+    base_class: "tools.CustomFileTool"  # Custom tool from local module
+
+agents:
+  my_agent:
+    base_class: "SGRToolCallingAgent"
+    tools:
+      - "reasoning_tool"  # From tools section
+      - "custom_file_tool"  # From tools section
+      - "web_search_tool"  # Recommended: snake_case format
+      - "final_answer_tool"  # Recommended: snake_case format
+```
+
+!!! note "Tool Resolution Order"
+    When resolving tools, the system checks in this order:
+    1. Tools defined in `tools:` section (by name)
+    2. Tools registered in `ToolRegistry` (by snake_case name - recommended, or PascalCase class name for backward compatibility)
+    3. Auto-conversion from snake_case to PascalCase (e.g., `web_search_tool` → `WebSearchTool`) for backward compatibility
+
 ### Tool Availability Control
 
 Agents automatically filter available tools based on execution limits:
 
-- After `max_iterations`: Only `CreateReportTool` and `FinalAnswerTool` are available
-- After `max_clarifications`: `ClarificationTool` is removed
-- After `max_searches`: `WebSearchTool` is removed
+- After `max_iterations`: Only `create_report_tool` and `final_answer_tool` are available
+- After `max_clarifications`: `clarification_tool` is removed
+- After `max_searches`: `web_search_tool` is removed
 
 This ensures agents complete tasks within configured limits.
 
@@ -450,22 +554,20 @@ All tools are automatically registered in `ToolRegistry` when defined. Tools can
 
 Tools are registered with their `tool_name` (auto-generated from class name if not specified). Custom tools must be imported before agent creation to be registered.
 
-## Default Toolset
+## Standard Tools
 
-The default toolkit includes all standard tools:
+All standard tools are automatically registered in `ToolRegistry` when imported from `sgr_agent_core.tools`. The standard toolkit includes:
 
-**Source:** [sgr_deep_research/default_definitions.py](https://github.com/vamplabAI/sgr-agent-core/blob/main/sgr_deep_research/default_definitions.py)
+**System Tools:**
+- `ReasoningTool` - For SGR-based agents that require explicit reasoning phases
+- `ClarificationTool` - For requesting user clarifications
+- `GeneratePlanTool` - For generating research plans
+- `AdaptPlanTool` - For adapting research plans
+- `FinalAnswerTool` - For providing final answers
+- `CreateReportTool` - For creating research reports
 
-```python
-DEFAULT_TOOLKIT = [
-    ClarificationTool,
-    GeneratePlanTool,
-    AdaptPlanTool,
-    FinalAnswerTool,
-    WebSearchTool,
-    ExtractPageContentTool,
-    CreateReportTool,
-]
-```
+**Auxiliary Tools:**
+- `WebSearchTool` - For web search functionality
+- `ExtractPageContentTool` - For extracting content from web pages
 
-ReasoningTool is added separately for SGR-based agents that require explicit reasoning phases.
+All these tools can be referenced by name in agent configurations (see [Tool Configuration](#tool-configuration) section above).

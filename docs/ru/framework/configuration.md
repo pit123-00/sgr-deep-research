@@ -102,8 +102,8 @@ agents:
 
     # Указываем минимальный набор инструментов
     tools:
-      - "WebSearchTool"
-      - "FinalAnswerTool"
+      - "web_search_tool"
+      - "final_answer_tool"
 ```
 
 В этом примере агент `simple_agent` использует:
@@ -144,13 +144,13 @@ agents:
 
     # Полный набор инструментов
     tools:
-      - "WebSearchTool"
-      - "ExtractPageContentTool"
-      - "CreateReportTool"
-      - "ClarificationTool"
-      - "GeneratePlanTool"
-      - "AdaptPlanTool"
-      - "FinalAnswerTool"
+      - "web_search_tool"
+      - "extract_page_content_tool"
+      - "create_report_tool"
+      - "clarification_tool"
+      - "generate_plan_tool"
+      - "adapt_plan_tool"
+      - "final_answer_tool"
 ```
 
 #### Пример 3: Оптимизированный для скорости
@@ -173,10 +173,10 @@ agents:
       max_searches: 3
 
     tools:
-      - "WebSearchTool"
-      - "CreateReportTool"
-      - "FinalAnswerTool"
-      - "ReasoningTool"
+      - "web_search_tool"
+      - "create_report_tool"
+      - "final_answer_tool"
+      - "reasoning_tool"
 ```
 
 #### Пример 4: С кастомными промптами
@@ -204,11 +204,11 @@ agents:
       max_searches: 8
 
     tools:
-      - "WebSearchTool"
-      - "ExtractPageContentTool"
-      - "CreateReportTool"
-      - "ClarificationTool"
-      - "FinalAnswerTool"
+      - "web_search_tool"
+      - "extract_page_content_tool"
+      - "create_report_tool"
+      - "clarification_tool"
+      - "final_answer_tool"
 ```
 
 
