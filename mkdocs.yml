@@ -34,20 +34,21 @@ plugins:
 
 theme:
   name: material
+  custom_dir: docs/overrides
   icon:
     annotation: material/plus-circle
   palette:
 
     - scheme: slate
-      primary: green
-      accent: green
+      primary: purple
+      accent: purple
       toggle:
         icon: material/brightness-7
         name: Переключить на светлую тему
 
     - scheme: default
-      primary: green
-      accent: green
+      primary: purple
+      accent: purple
       toggle:
         icon: material/brightness-4
         name: Переключить на тёмную тему
