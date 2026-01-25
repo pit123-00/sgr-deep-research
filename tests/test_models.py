@@ -143,6 +143,7 @@ class TestAgentStatesEnum:
         assert AgentStatesEnum.COMPLETED == "completed"
         assert AgentStatesEnum.ERROR == "error"
         assert AgentStatesEnum.FAILED == "failed"
+        assert AgentStatesEnum.CANCELLED == "cancelled"
 
     def test_agent_states_finish_states(self):
         """Test that FINISH_STATES contains terminal states."""
@@ -151,6 +152,7 @@ class TestAgentStatesEnum:
         assert AgentStatesEnum.COMPLETED in finish_states
         assert AgentStatesEnum.FAILED in finish_states
         assert AgentStatesEnum.ERROR in finish_states
+        assert AgentStatesEnum.CANCELLED in finish_states
 
     def test_agent_states_non_finish_states(self):
         """Test that non-terminal states are not in FINISH_STATES."""

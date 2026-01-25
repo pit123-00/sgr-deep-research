@@ -1,3 +1,4 @@
+import asyncio
 import json
 import logging
 import os
@@ -55,6 +56,8 @@ class BaseAgent(AgentRegistryMixin):
         self.streaming_generator = OpenAIStreamingGenerator(model=self.id)
         self.logger = logging.getLogger(f"sgr_agent_core.agents.{self.id}")
         self.log = []
+
+        self._execute_task: asyncio.Task | None = None
 
     async def provide_clarification(self, messages: list[ChatCompletionMessageParam]):
         """Receive clarification from an external source (e.g. user input) in
@@ -206,9 +209,37 @@ class BaseAgent(AgentRegistryMixin):
             self._context.clarification_received.clear()
             await self._context.clarification_received.wait()
 
-    async def execute(
-        self,
-    ):
+    async def cancel(self) -> None:
+        """Cancel the agent execution.
+
+        Cancels the running execute task if it exists and sets the agent
+        state to CANCELLED.
+        """
+        if self._execute_task and not self._execute_task.done():
+            self._execute_task.cancel()
+            try:
+                await self._execute_task
+            except asyncio.CancelledError:
+                pass
+
+    async def execute(self) -> str | None:
+        """Start agent execution and return the result.
+
+        Creates an asyncio task for the agent execution, stores it
+        in _execute_task for later cancellation, and awaits completion.
+
+        Returns:
+            The execution result (final answer) or None.
+        """
+        self._execute_task = asyncio.create_task(self._execute())
+        return await self._execute_task
+
+    async def _execute(self):
+        """Internal execution loop for the agent.
+
+        This method contains the main agent execution logic. It is
+        called by execute() which wraps it in an asyncio task.
+        """
         self.logger.info(f"🚀 User provided {len(self.task_messages)} messages.")
         try:
             while self._context.state not in AgentStatesEnum.FINISH_STATES.value:
@@ -216,6 +247,11 @@ class BaseAgent(AgentRegistryMixin):
                 self.logger.info(f"Step {self._context.iteration} started")
                 await self._execution_step()
             return self._context.execution_result
+
+        except asyncio.CancelledError:
+            self.logger.info("⏹️ Agent execution cancelled")
+            self._context.state = AgentStatesEnum.CANCELLED
+            raise
 
         except Exception as e:
             self.logger.error(f"❌ Agent execution error: {str(e)}")

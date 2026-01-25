@@ -8,6 +8,7 @@ import pytest
 from pydantic import ValidationError
 
 from sgr_agent_core.server.models import (
+    AgentDeleteResponse,
     AgentListItem,
     AgentListResponse,
     AgentStateResponse,
@@ -320,6 +321,31 @@ class TestAgentListResponse:
         response = AgentListResponse(agents=items, total=10)
         assert len(response.agents) == 1
         assert response.total == 10
+
+
+class TestAgentDeleteResponse:
+    """Tests for AgentDeleteResponse model."""
+
+    def test_agent_delete_response_creation(self):
+        """Test creating an agent delete response."""
+        response = AgentDeleteResponse(
+            agent_id="agent_123",
+            deleted=True,
+            final_state="cancelled",
+        )
+        assert response.agent_id == "agent_123"
+        assert response.deleted is True
+        assert response.final_state == "cancelled"
+
+    def test_agent_delete_response_not_deleted(self):
+        """Test agent delete response when deletion failed."""
+        response = AgentDeleteResponse(
+            agent_id="agent_123",
+            deleted=False,
+            final_state="completed",
+        )
+        assert response.deleted is False
+        assert response.final_state == "completed"
 
 
 class TestClarificationRequest:

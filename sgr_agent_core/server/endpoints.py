@@ -6,6 +6,7 @@ from fastapi.responses import StreamingResponse
 
 from sgr_agent_core import AgentFactory, AgentStatesEnum, BaseAgent
 from sgr_agent_core.server.models import (
+    AgentDeleteResponse,
     AgentListItem,
     AgentListResponse,
     AgentStateResponse,
@@ -39,6 +40,44 @@ async def get_agent_state(agent_id: str):
         task_messages=agent.task_messages,
         sources_count=len(agent._context.sources),
         **agent._context.model_dump(),
+    )
+
+
+@router.delete("/agents/{agent_id}", response_model=AgentDeleteResponse)
+async def delete_agent(agent_id: str):
+    """Delete (cancel) an agent and remove it from storage.
+
+    If the agent is currently running, it will be cancelled first.
+    The agent is then removed from storage.
+
+    Args:
+        agent_id: The ID of the agent to delete
+
+    Returns:
+        AgentDeleteResponse with deletion status and final state
+
+    Raises:
+        HTTPException: 404 if agent not found
+    """
+    if agent_id not in agents_storage:
+        raise HTTPException(status_code=404, detail="Agent not found")
+
+    agent = agents_storage[agent_id]
+
+    # Cancel the agent if it's running
+    await agent.cancel()
+
+    # Get final state before removing from storage
+    final_state = agent._context.state.value
+
+    # Remove from storage
+    del agents_storage[agent_id]
+    logger.info(f"Agent {agent_id} deleted with final state: {final_state}")
+
+    return AgentDeleteResponse(
+        agent_id=agent_id,
+        deleted=True,
+        final_state=final_state,
     )
 
 
@@ -134,7 +173,7 @@ async def create_chat_completion(request: ChatCompletionRequest):
         logger.info(f"Created agent '{request.model}' with {len(request.messages)} messages")
 
         agents_storage[agent.id] = agent
-        _ = asyncio.create_task(agent.execute())
+        asyncio.create_task(agent.execute())  # Starts execution, task stored in agent._execute_task
         return StreamingResponse(
             agent.streaming_generator.stream(),
             media_type="text/event-stream",
