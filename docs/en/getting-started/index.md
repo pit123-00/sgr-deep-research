@@ -4,6 +4,15 @@
 
 The library includes extensible tools for search, reasoning, and clarification, real-time streaming responses, and an OpenAI-compatible REST API. Works with any OpenAI-compatible LLM, including local models for fully private research.
 
+## Why use SGR Agent Core?
+
+* **Schema-Guided Reasoning** — SGR combines structured reasoning with flexible tool selection
+* **Multiple Agent Types** — Choose from `SGRAgent`, `ToolCallingAgent`, or `SGRToolCallingAgent`
+* **Extensible Architecture** — Easy to create custom agents and tools
+* **OpenAI-Compatible API** — Drop-in replacement for OpenAI API endpoints
+* **Real-time Streaming** — Built-in support for streaming responses via SSE
+* **Production Ready** — Battle-tested with comprehensive test coverage and Docker support
+
 ## Quick Start
 
 ### Installation
@@ -58,15 +67,6 @@ if __name__ == "__main__":
 - **[Installation](installation.md)** — Detailed installation instructions for pip and Docker
 - **[Agent Core Framework](../framework/main-concepts.md)** — Understand the core concepts and architecture
 - **[SGR API Service](../sgr-api/SGR-Quick-Start.md)** — Get started with the REST API service
-
-## Why use SGR Agent Core?
-
-* **Schema-Guided Reasoning** — SGR combines structured reasoning with flexible tool selection
-* **Multiple Agent Types** — Choose from `SGRAgent`, `ToolCallingAgent`, or `SGRToolCallingAgent`
-* **Extensible Architecture** — Easy to create custom agents and tools
-* **OpenAI-Compatible API** — Drop-in replacement for OpenAI API endpoints
-* **Real-time Streaming** — Built-in support for streaming responses via SSE
-* **Production Ready** — Battle-tested with comprehensive test coverage and Docker support
 
 ## Contact & Community
 
