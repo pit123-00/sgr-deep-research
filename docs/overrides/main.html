@@ -81,4 +81,16 @@
     --md-typeset-a-color: #6c5ce7;
   }
 </style>
+<script>
+  // Redirect root page to Russian getting started page
+  (function() {
+    var path = window.location.pathname;
+    var basePath = '/sgr-agent-core';
+
+    // Check if we're on the root page
+    if (path === '/' || path === basePath || path === basePath + '/') {
+      window.location.replace(basePath + '/getting-started/');
+    }
+  })();
+</script>
 {% endblock %}
