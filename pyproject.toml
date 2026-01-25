@@ -79,6 +79,15 @@ tests = [
     "pytest-cov>=4.0.0",
     "pytest-asyncio>=0.21.0",
 ]
+docs = [
+    "mkdocs",
+    "mkdocs-material",
+    "mkdocs-dracula-theme",
+    "mkdocs-material-extensions",
+    "mkdocs-get-deps",
+    "mkdocs-static-i18n",
+]
+
 
 [tool.setuptools.packages.find]
 where = ["."]
