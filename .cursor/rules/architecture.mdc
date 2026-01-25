@@ -26,9 +26,9 @@ The project uses **modular architecture with clear separation of concerns**. The
 
 ### Layer 3: Factory and Services
 - `agent_factory.py` - AgentFactory for creating agents
-- `services/mcp_service.py` - MCP2ToolConverter
+- `services/mcp_service.py` - MCP2ToolConverter for MCP tool integration
 - `services/tavily_search.py` - Tavily search service
-- `next_step_tool.py` - NextStepToolsBuilder, NextStepToolStub
+- `next_step_tool.py` - NextStepToolsBuilder, NextStepToolStub, DiscriminantToolMixin
 
 ### Layer 4: Agent Implementations
 - `agents/sgr_agent.py` - SGRAgent (Structured Output)
@@ -54,43 +54,59 @@ The project uses **modular architecture with clear separation of concerns**. The
 
 ## Agent Execution Cycle
 
-All agents follow a two-phase cycle:
+All agents follow a three-phase cycle implemented in `BaseAgent._execution_step()`:
 
 ```python
-while agent.state not in FINISH_STATES:
+while agent._context.state not in FINISH_STATES:
     reasoning = await agent._reasoning_phase()
     action_tool = await agent._select_action_phase(reasoning)
     await agent._action_phase(action_tool)
 ```
 
-### Phase 1: Reasoning Phase
-- Agent analyzes current context
-- Decides on next action
-- Implementation varies by agent type (SO, FC, or Hybrid)
+The main `execute()` method runs this cycle until agent reaches a finish state.
 
-### Phase 2: Select Action Phase
+### Phase 1: Reasoning Phase (`_reasoning_phase()`)
+- Agent analyzes current context via `_prepare_context()`
+- Decides on next action using LLM
+- Implementation varies by agent type:
+  - **SGRAgent**: Uses structured output with `NextStepToolStub` (reasoning + tool selection)
+  - **ToolCallingAgent**: Returns `None` (no explicit reasoning)
+  - **SGRToolCallingAgent**: Uses Function Calling to get `ReasoningTool` result, then executes it
+- Returns `ReasoningTool` or `NextStepToolStub` (or `None` for ToolCallingAgent)
+
+### Phase 2: Select Action Phase (`_select_action_phase()`)
 - Selects appropriate tool based on reasoning
-- Returns tool instance ready for execution
+- Implementation varies by agent type:
+  - **SGRAgent**: Extracts tool from `reasoning.function` field
+  - **ToolCallingAgent**: Uses Function Calling with `tool_choice="required"`
+  - **SGRToolCallingAgent**: Uses Function Calling with `tool_choice="required"` (handles text response edge case)
+- Returns `BaseTool` instance ready for execution
 
-### Phase 3: Action Phase
-- Executes selected tool
-- Updates conversation history
-- Updates agent context
+### Phase 3: Action Phase (`_action_phase()`)
+- Executes selected tool: `result = await tool(context, config)`
+- Updates conversation history with tool call and result
+- Updates agent context (state, iteration, sources, etc.)
+- Logs tool execution
+- Handles special cases (e.g., `ClarificationTool` pauses execution)
 
 ## Module Rules
 
 ### Agents (`sgr_agent_core/agents/`)
 - Must inherit from `BaseAgent`
 - Must implement `_reasoning_phase()`, `_select_action_phase()`, `_action_phase()`
-- Automatically registered in `AgentRegistry` via `AgentRegistryMixin`
+- Can override `_execution_step()` to customize execution cycle
 - Can override `_prepare_context()` and `_prepare_tools()` for customization
+- Automatically registered in `AgentRegistry` via `AgentRegistryMixin`
+- Must set `name` class variable (used for registration)
 
 ### Tools (`sgr_agent_core/tools/`)
 - Must inherit from `BaseTool` or `MCPBaseTool`
-- Must be Pydantic models
-- Must implement `__call__()` method
+- Must be Pydantic models (inherit from `BaseModel`)
+- Must implement `__call__(context: AgentContext, config: AgentConfig, **kwargs) -> str`
+- Must set `tool_name` and `description` class variables (or use defaults)
 - Automatically registered in `ToolRegistry` via `ToolRegistryMixin`
 - Return string or JSON string from `__call__()`
+- Can be used in `NextStepToolsBuilder` for structured output
 
 ### Services (`sgr_agent_core/services/`)
 - Stateless utility classes
@@ -99,8 +115,11 @@ while agent.state not in FINISH_STATES:
 
 ### Configuration (`agent_config.py`, `agent_definition.py`)
 - Hierarchical configuration: GlobalConfig → AgentDefinition → AgentConfig
-- Supports YAML loading
+- Supports YAML loading via `GlobalConfig.from_yaml()` and `definitions_from_yaml()`
+- Supports environment variables via `pydantic-settings` (prefix `SGR__`)
 - Automatic inheritance and override of settings
+- `AgentDefinition` inherits from `AgentConfig` (has all config fields + name, base_class, tools)
+- Config classes use `extra="allow"` to support custom fields
 
 ## Design Principles
 

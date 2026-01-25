@@ -99,7 +99,7 @@ agents:
   my_agent:
     base_class: "SGRToolCallingAgent"
     tools:
-      - "WebSearchTool"  # From ToolRegistry
+      - "web_search_tool"  # From ToolRegistry
       - "reasoning_tool"  # From tools section
       - "custom_tool"  # From tools section
 ```
@@ -107,8 +107,8 @@ agents:
 !!! note "Tool Resolution Order"
     When resolving tools, the system checks in this order:
     1. Tools defined in `tools:` section (by name)
-    2. Tools registered in `ToolRegistry` (by name or PascalCase class name)
-    3. Auto-conversion from snake_case to PascalCase (e.g., `web_search_tool` → `WebSearchTool`)
+    2. Tools registered in `ToolRegistry` (by snake_case name - recommended, or PascalCase class name for backward compatibility)
+    3. Auto-conversion from snake_case to PascalCase (e.g., `web_search_tool` → `WebSearchTool`) for backward compatibility
 
 ### Agent Configuration Examples
 
@@ -140,8 +140,8 @@ agents:
 
     # Specify minimal toolset
     tools:
-      - "WebSearchTool"
-      - "FinalAnswerTool"
+      - "web_search_tool"
+      - "final_answer_tool"
 ```
 
 In this example, the `simple_agent` uses:
@@ -183,13 +183,13 @@ agents:
 
     # Full toolset
     tools:
-      - "WebSearchTool"
-      - "ExtractPageContentTool"
-      - "CreateReportTool"
-      - "ClarificationTool"
-      - "GeneratePlanTool"
-      - "AdaptPlanTool"
-      - "FinalAnswerTool"
+      - "web_search_tool"
+      - "extract_page_content_tool"
+      - "create_report_tool"
+      - "clarification_tool"
+      - "generate_plan_tool"
+      - "adapt_plan_tool"
+      - "final_answer_tool"
 ```
 
 #### Example 3: Speed-Optimized
@@ -212,10 +212,10 @@ agents:
       max_searches: 3
 
     tools:
-      - "WebSearchTool"
-      - "CreateReportTool"
-      - "FinalAnswerTool"
-      - "ReasoningTool"
+      - "web_search_tool"
+      - "create_report_tool"
+      - "final_answer_tool"
+      - "reasoning_tool"
 ```
 
 #### Example 4: With Custom Prompts
@@ -243,11 +243,11 @@ agents:
       max_searches: 8
 
     tools:
-      - "WebSearchTool"
-      - "ExtractPageContentTool"
-      - "CreateReportTool"
-      - "ClarificationTool"
-      - "FinalAnswerTool"
+      - "web_search_tool"
+      - "extract_page_content_tool"
+      - "create_report_tool"
+      - "clarification_tool"
+      - "final_answer_tool"
 ```
 
 #### Example 5: With Tool Definitions
@@ -273,7 +273,7 @@ agents:
     tools:
       - "reasoning_tool"  # From tools section
       - "custom_file_tool"  # From tools section
-      - "FinalAnswerTool"  # From ToolRegistry
+      - "final_answer_tool"  # From ToolRegistry
 ```
 
 ## Recommendations

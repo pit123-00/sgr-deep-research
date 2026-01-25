@@ -36,7 +36,7 @@ source .venv/Scripts/activate
 
 **CRITICALLY IMPORTANT**: When user asks to implement a new feature (using words "фича", "feature", "новая функция", "добавить", "implement", "add"), **always** apply TDD approach and follow this strict workflow:
 
-**Do not skip any step!** Always follow order: write test (red) → verify test fails → implement feature → test (green) → run all tests → run linter → report.
+**Do not skip any step!** Always follow order: write test (red) → verify test fails → implement feature → test (green) → run all tests → run linter → update documentation → report.
 
 ### Step-by-step Process for New Features
 
@@ -84,12 +84,19 @@ source .venv/Scripts/activate
    - Make sure linter passes completely
    - If there are errors, fix them and repeat step 6
 
-7. **Write report**
+7. **Update documentation**
+   - Update relevant documentation files to describe the new feature
+   - Add examples if applicable
+   - Update API documentation if needed
+   - Ensure documentation is clear and complete
+
+8. **Write report**
    - Brief report of work done
    - What feature was implemented
    - Which tests were added/changed
    - Test run results
    - Linter results
+   - Documentation updates
 
 ### Report Structure Example for New Features
 
@@ -102,10 +109,12 @@ source .venv/Scripts/activate
 3. Ran new test - passed (green)
 4. Ran all tests - all green (239 passed)
 5. Ran linter - all checks passed
+6. Updated documentation in `docs/*/framework/feature.md`
 
 ### Changed Files
 - `sgr_agent_core/module.py` - added new_method implementation
 - `tests/test_module.py` - added test_new_feature test
+- `docs/*/framework/feature.md` - added documentation for new feature
 ```
 
 ## Bug Fixes (TDD Approach)
@@ -114,7 +123,7 @@ source .venv/Scripts/activate
 
 **CRITICALLY IMPORTANT**: When user asks to fix a bug (using words "баг", "bug", "ошибка", "error", "исправить", "fix"), **always** apply TDD approach and follow this strict workflow:
 
-**Do not skip any step!** Always follow order: test (red) → fix → test (green) → all tests → run linter → report.
+**Do not skip any step!** Always follow order: test (red) → fix → test (green) → all tests → run linter → update documentation → report.
 
 ### Step-by-step Process for Bug Fixes
 
@@ -153,7 +162,13 @@ source .venv/Scripts/activate
    - Make sure linter passes completely
    - If there are errors, fix them and repeat step 5
 
-6. **Write report**
+6. **Update documentation**
+   - Update relevant documentation files to describe the bug fix
+   - Add examples if applicable
+   - Update API documentation if needed
+   - Ensure documentation reflects the fix
+
+7. **Write report**
    - Brief report of work done
    - What was fixed
    - Which tests were added/changed
@@ -174,10 +189,12 @@ source .venv/Scripts/activate
 3. Ran new test - passed (green)
 4. Ran all tests - all green (239 passed)
 5. Ran linter - all checks passed
+6. Updated documentation in `docs/en/framework/module.md` to reflect the fix
 
 ### Changed Files
 - `sgr_agent_core/module.py` - fixed processing logic
 - `tests/test_module.py` - added test for bug
+- `docs/en/framework/module.md` - updated documentation
 ```
 
 ## Final Verification Before Reporting

@@ -63,8 +63,8 @@ agents:
       model: "gpt-4o-mini"
 
     tools:
-      - "WebSearchTool"
-      - "FinalAnswerTool"
+      - "web_search_tool"
+      - "final_answer_tool"
 
   # Example 3: Fast research agent optimized for speed
   fast_research_agent:
@@ -82,10 +82,10 @@ agents:
       max_searches: 3
 
     tools:
-      - "WebSearchTool"
-      - "CreateReportTool"
-      - "FinalAnswerTool"
-      - "ReasoningTool"
+      - "web_search_tool"
+      - "create_report_tool"
+      - "final_answer_tool"
+      - "reasoning_tool"
 
   # Example 4: Specialized technical analyst with custom prompts
   technical_analyst:
@@ -105,11 +105,11 @@ agents:
       max_searches: 8
 
     tools:
-      - "WebSearchTool"
-      - "ExtractPageContentTool"
-      - "CreateReportTool"
-      - "ClarificationTool"
-      - "FinalAnswerTool"
+      - "web_search_tool"
+      - "extract_page_content_tool"
+      - "create_report_tool"
+      - "clarification_tool"
+      - "final_answer_tool"
 
   # Example 5: Agent using inline prompts instead of files
   inline_prompt_agent:
@@ -126,5 +126,5 @@ agents:
         I need clarification on: {clarification_needed}
 
     tools:
-      - "WebSearchTool"
-      - "FinalAnswerTool"
+      - "web_search_tool"
+      - "final_answer_tool"

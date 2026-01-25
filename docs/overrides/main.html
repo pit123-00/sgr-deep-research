@@ -1,0 +1,84 @@
+{% extends "base.html" %}
+
+{% block extrahead %}
+{{ super() }}
+<style>
+  /* Override Material theme CSS variables for custom colors */
+  :root,
+  [data-md-color-scheme] {
+    /* Dark purple background for header */
+    --md-primary-fg-color: #1a1a2e;
+    --md-primary-fg-color--light: #a29bfe;
+    --md-primary-fg-color--dark: #5f3dc4;
+
+    /* Accent colors */
+    --md-accent-fg-color: #6c5ce7;
+    --md-accent-fg-color--transparent: rgba(108, 92, 231, 0.1);
+
+    /* Dark theme background colors */
+    --md-default-bg-color: #0d0d1a;
+    --md-default-bg-color--light: #1a1a2e;
+    --md-default-bg-color--lighter: #252540;
+    --md-default-bg-color--lightest: #2d2d4a;
+
+    /* Text colors for dark theme */
+    --md-default-fg-color: #ffffff;
+    --md-default-fg-color--light: rgba(255, 255, 255, 0.7);
+    --md-default-fg-color--lighter: rgba(255, 255, 255, 0.54);
+    --md-default-fg-color--lightest: rgba(255, 255, 255, 0.38);
+
+    /* Code block colors */
+    --md-code-bg-color: #1a1a2e;
+    --md-code-fg-color: #ffffff;
+
+    /* Link colors */
+    --md-typeset-a-color: #6c5ce7;
+
+    /* Admonition colors */
+    --md-admonition-bg-color: rgba(108, 92, 231, 0.1);
+  }
+
+  /* Override for dark theme (slate) */
+  [data-md-color-scheme="slate"] {
+    --md-primary-fg-color: #1a1a2e;
+    --md-primary-fg-color--light: #a29bfe;
+    --md-primary-fg-color--dark: #5f3dc4;
+
+    --md-accent-fg-color: #6c5ce7;
+
+    --md-default-bg-color: #0d0d1a;
+    --md-default-fg-color: #ffffff;
+
+    --md-code-bg-color: #1a1a2e;
+    --md-code-fg-color: #ffffff;
+
+    --md-typeset-a-color: #6c5ce7;
+
+    /* Subtle grid pattern effect */
+    background-image:
+      linear-gradient(rgba(108, 92, 231, 0.03) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(108, 92, 231, 0.03) 1px, transparent 1px);
+    background-size: 20px 20px;
+  }
+
+  /* Override for light theme (default) */
+  [data-md-color-scheme="default"] {
+    --md-primary-fg-color: #1a1a2e;
+    --md-primary-fg-color--light: #a29bfe;
+    --md-primary-fg-color--dark: #5f3dc4;
+
+    --md-accent-fg-color: #6c5ce7;
+
+    --md-default-bg-color: #ffffff;
+    --md-default-fg-color: #1a1a2e;
+    --md-default-fg-color--light: rgba(26, 26, 46, 0.7);
+    --md-default-fg-color--lighter: rgba(26, 26, 46, 0.54);
+    --md-default-fg-color--lightest: rgba(26, 26, 46, 0.38);
+
+    --md-code-bg-color: #f5f5f5;
+    --md-code-fg-color: #1a1a2e;
+
+    --md-typeset-a-color: #6c5ce7;
+  }
+</style>
+{% endblock %}

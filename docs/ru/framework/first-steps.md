@@ -217,8 +217,8 @@ agents:
     llm:
       model: "gpt-4.1-mini"
     tools:
-      - "WebSearchTool"
-      - "FinalAnswerTool"
+      - "web_search_tool"
+      - "final_answer_tool"
     search:
       tavily_api_key: "___"
       max_results: 5
@@ -229,7 +229,7 @@ agents:
     llm:
       temperature: 0.8
     tools:
-      - "FinalAnswerTool"
+      - "final_answer_tool"
     prompts:
       system_prompt_str: "Ты известный литератор. Напиши краткий очерк на заданную тему."
 ```

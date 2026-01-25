@@ -1,8 +1,7 @@
 # SGR Agent Core — the first SGR open-source agentic framework for Schema-Guided Reasoning
 
-## Description
-
 ![SGR Concept Architecture](https://github.com/vamplabAI/sgr-agent-core/blob/main/docs/assets/images/sgr_concept.png)
+
 Open-source agentic framework for building intelligent research agents using Schema-Guided Reasoning. The project provides a core library with a extendable BaseAgent interface implementing a two-phase architecture and multiple ready-to-use research agent implementations built on top of it.
 
 The library includes extensible tools for search, reasoning, and clarification, real-time streaming responses, OpenAI-compatible REST API. Works with any OpenAI-compatible LLM, including local models for fully private research.

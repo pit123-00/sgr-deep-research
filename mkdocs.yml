@@ -1,5 +1,6 @@
 site_name: SGR Agent Core
 site_url: https://vamplabai.github.io/sgr-agent-core/
+#site_url: http://localhost:8000/
 repo_url: https://github.com/vamplabai/sgr-agent-core
 repo_name: vamplabAI/sgr-agent-core
 
@@ -16,7 +17,9 @@ plugins:
           name: Русский
           build: true
           nav_translations:
-            Home: Главная
+            Get Started: Начало работы
+            Welcome to SGR Agent: Добро пожаловать в SGR Agent
+            Installation: Установка
             Main Concepts: Основные концепции
             User Guide: Руководство пользователя
             Quick Start: Быстрый старт
@@ -31,20 +34,21 @@ plugins:
 
 theme:
   name: material
+  custom_dir: docs/overrides
   icon:
     annotation: material/plus-circle
   palette:
 
     - scheme: slate
-      primary: green
-      accent: green
+      primary: purple
+      accent: purple
       toggle:
         icon: material/brightness-7
         name: Переключить на светлую тему
 
     - scheme: default
-      primary: green
-      accent: green
+      primary: purple
+      accent: purple
       toggle:
         icon: material/brightness-4
         name: Переключить на тёмную тему
@@ -58,8 +62,10 @@ theme:
     - content.code.annotate
     - content.code.highlight
 nav:
-  - Home: index.md
-  - Agent Core Framework:
+  - Get Started:
+      - Welcome to SGR Agent: getting-started/index.md
+      - Installation: getting-started/installation.md
+  - Agent Framework:
     - Main Concepts: framework/main-concepts.md
     - User Guide:
         - Quick Start: framework/first-steps.md
