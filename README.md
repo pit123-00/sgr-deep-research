@@ -10,12 +10,12 @@ ______________________________________________________________________
 
 ## Why use SGR Agent Core?
 
-* **Schema-Guided Reasoning** — SGR combines structured reasoning with flexible tool selection
-* **Multiple Agent Types** — Choose from `SGRAgent`, `ToolCallingAgent`, or `SGRToolCallingAgent`
-* **Extensible Architecture** — Easy to create custom agents and tools
-* **OpenAI-Compatible API** — Drop-in replacement for OpenAI API endpoints
-* **Real-time Streaming** — Built-in support for streaming responses via SSE
-* **Production Ready** — Battle-tested with comprehensive test coverage and Docker support
+- **Schema-Guided Reasoning** — SGR combines structured reasoning with flexible tool selection
+- **Multiple Agent Types** — Choose from `SGRAgent`, `ToolCallingAgent`, or `SGRToolCallingAgent`
+- **Extensible Architecture** — Easy to create custom agents and tools
+- **OpenAI-Compatible API** — Drop-in replacement for OpenAI API endpoints
+- **Real-time Streaming** — Built-in support for streaming responses via SSE
+- **Production Ready** — Battle-tested with comprehensive test coverage and Docker support
 
 ______________________________________________________________________
 
