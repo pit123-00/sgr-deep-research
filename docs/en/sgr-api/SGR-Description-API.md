@@ -213,6 +213,9 @@ Get a list of all active agents.
 - `RESEARCHING` - Agent is actively researching
 - `WAITING_FOR_CLARIFICATION` - Agent needs clarification
 - `COMPLETED` - Research completed
+- `CANCELLED` - Agent execution was cancelled
+- `FAILED` - Agent execution failed
+- `ERROR` - Agent execution error
 
 **Example:**
 
@@ -306,6 +309,58 @@ curl -X POST "http://localhost:8010/agents/sgr_agent_12345-67890-abcdef/provide_
     "messages": [{"role": "user", "content": "Focus on luxury models only"}]
   }'
 ```
+
+</details>
+
+______________________________________________________________________
+
+<details>
+<summary><strong>⏹️ Cancel/Delete Agent</strong> - Cancel agent execution and remove from storage</summary>
+
+## 🔍 DELETE `/agents/{agent_id}`
+
+Cancel a running agent's execution and remove it from storage. If the agent is currently running, it will be cancelled first before removal.
+
+**Parameters:**
+
+- `agent_id` (string, required): Unique agent identifier
+
+**Response:**
+
+```json
+{
+  "agent_id": "sgr_agent_12345-67890-abcdef",
+  "deleted": true,
+  "final_state": "cancelled"
+}
+```
+
+**Response Fields:**
+
+- `agent_id` (string): The ID of the deleted agent
+- `deleted` (boolean): Whether the agent was successfully deleted
+- `final_state` (string): Final state of the agent after deletion (e.g., "cancelled", "completed", "failed")
+
+**Behavior:**
+
+- If the agent is currently running, it will be cancelled first
+- The agent's execution task will be stopped
+- The agent state will be set to `CANCELLED` if it was running
+- The agent will be removed from storage after cancellation/deletion
+- Works for agents in any state (running, completed, failed, etc.)
+
+**Example:**
+
+```bash
+curl -X DELETE "http://localhost:8010/agents/sgr_agent_12345-67890-abcdef"
+```
+
+**Use Cases:**
+
+- Stop a long-running research task that is no longer needed
+- Clean up completed agents from storage
+- Cancel an agent that is stuck or taking too long
+- Free up resources by removing inactive agents
 
 </details>
 

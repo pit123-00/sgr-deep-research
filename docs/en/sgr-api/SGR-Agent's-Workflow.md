@@ -75,8 +75,12 @@ sequenceDiagram
     Agent->>API: Finish streaming
     API-->>Client: Close SSE stream
 
-    Note over Client, Tools: Agent remains accessible<br/>via agent_id for further clarifications
+    Note over Client, Tools: Agent remains accessible<br/>via agent_id for further clarifications<br/>or cancellation via DELETE /agents/{agent_id}
 ```
+
+!!! Note "Agent Cancellation"
+    At any point during execution, the agent can be cancelled using the `DELETE /agents/{agent_id}` endpoint. 
+    This will stop the execution task, set the agent state to `CANCELLED`, and remove it from storage.
 
 ## 🤖 Schema-Guided Reasoning Capabilities:
 
