@@ -79,7 +79,7 @@ sequenceDiagram
 ```
 
 !!! Note "Agent Cancellation"
-    At any point during execution, the agent can be cancelled using the `DELETE /agents/{agent_id}` endpoint. 
+    At any point during execution, the agent can be cancelled using the `DELETE /agents/{agent_id}` endpoint.
     This will stop the execution task, set the agent state to `CANCELLED`, and remove it from storage.
 
 ## 🤖 Schema-Guided Reasoning Capabilities:

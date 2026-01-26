@@ -41,7 +41,7 @@ class BaseAgent:
     # Tools and streaming
     toolkit: list[Type[BaseTool]]             # Set of available tools
     streaming_generator: OpenAIStreamingGenerator  # Streaming generator
-    
+
     # Execution control
     _execute_task: asyncio.Task | None        # Internal execution task (for cancellation)
 ```
@@ -51,21 +51,21 @@ class BaseAgent:
 ```py
     async def execute(self) -> str | None:
         """Start agent execution and return the result.
-        
+
         Creates an asyncio task for the agent execution, stores it
         in _execute_task for later cancellation, and awaits completion.
         """
-        
+
     async def cancel(self) -> None:
         """Cancel the agent execution.
-        
+
         Cancels the running execute task if it exists and sets the agent
         state to CANCELLED.
         """
 ```
 
 !!! Note "Agent Cancellation"
-    The `cancel()` method allows you to stop a running agent at any time. 
+    The `cancel()` method allows you to stop a running agent at any time.
     When cancelled, the agent's state is set to `CANCELLED` and it becomes part of `FINISH_STATES`.
 
 ### Methods to Override
