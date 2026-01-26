@@ -39,8 +39,9 @@ class AgentStatesEnum(str, Enum):
     COMPLETED = "completed"
     ERROR = "error"
     FAILED = "failed"
+    CANCELLED = "cancelled"
 
-    FINISH_STATES = {COMPLETED, FAILED, ERROR}
+    FINISH_STATES = {COMPLETED, FAILED, ERROR, CANCELLED}
 
 
 class AgentContext(BaseModel):

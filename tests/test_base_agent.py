@@ -404,6 +404,103 @@ class TestBaseAgentPrepareContext:
         assert len(context) == 6  # system + task_messages + initial_user_request + 3 conversation messages
 
 
+class TestBaseAgentCancellation:
+    """Tests for agent cancellation functionality."""
+
+    @pytest.mark.asyncio
+    async def test_execute_task_stored_in_agent(self):
+        """Test that execute task is stored in agent._execute_task."""
+        agent = create_test_agent(BaseAgent, task_messages=[{"role": "user", "content": "Test"}])
+
+        # Initially task should be None
+        assert agent._execute_task is None
+
+    @pytest.mark.asyncio
+    async def test_execute_stores_task_in_agent(self):
+        """Test that execute() stores task in agent._execute_task."""
+        import asyncio
+
+        agent = create_test_agent(BaseAgent, task_messages=[{"role": "user", "content": "Test"}])
+
+        # Mock execution to complete immediately
+        async def quick_execution_step():
+            agent._context.state = AgentStatesEnum.COMPLETED
+
+        agent._execution_step = quick_execution_step
+
+        # Start execute() as a background task
+        execute_task = asyncio.create_task(agent.execute())
+
+        # Give it a moment to start
+        await asyncio.sleep(0.01)
+
+        # execute() should have stored the internal task
+        assert agent._execute_task is not None
+        assert isinstance(agent._execute_task, asyncio.Task)
+
+        # Wait for completion
+        await execute_task
+
+    @pytest.mark.asyncio
+    async def test_cancel_sets_cancelled_state(self):
+        """Test that cancelling agent sets state to CANCELLED."""
+        import asyncio
+
+        agent = create_test_agent(BaseAgent, task_messages=[{"role": "user", "content": "Test"}])
+
+        # Create a simple subclass that has a slow execution
+        async def slow_execution_step():
+            await asyncio.sleep(10)  # Long sleep
+
+        agent._execution_step = slow_execution_step
+
+        # Start execution using execute()
+        execute_task = asyncio.create_task(agent.execute())
+
+        # Give it time to start
+        await asyncio.sleep(0.01)
+
+        # Cancel the internal task
+        agent._execute_task.cancel()
+
+        # Wait for task to be cancelled
+        try:
+            await execute_task
+        except asyncio.CancelledError:
+            pass
+
+        assert agent._context.state == AgentStatesEnum.CANCELLED
+
+    @pytest.mark.asyncio
+    async def test_cancel_method_cancels_task(self):
+        """Test that agent.cancel() method cancels the execute task."""
+        import asyncio
+
+        agent = create_test_agent(BaseAgent, task_messages=[{"role": "user", "content": "Test"}])
+
+        async def slow_execution_step():
+            await asyncio.sleep(10)
+
+        agent._execution_step = slow_execution_step
+
+        # Start execution using execute()
+        execute_task = asyncio.create_task(agent.execute())
+
+        await asyncio.sleep(0.01)
+
+        # Cancel using agent method
+        await agent.cancel()
+
+        assert agent._context.state == AgentStatesEnum.CANCELLED
+        assert agent._execute_task.cancelled() or agent._execute_task.done()
+
+        # Clean up: wait for execute_task to finish
+        try:
+            await execute_task
+        except asyncio.CancelledError:
+            pass
+
+
 class TestBaseAgentSaveLog:
     """Tests for agent log saving functionality."""
 

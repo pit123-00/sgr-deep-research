@@ -4,7 +4,6 @@ This module contains comprehensive tests for FastAPI endpoints,
 including agent creation, agent state management, and chat completions.
 """
 
-import asyncio
 from unittest.mock import AsyncMock, Mock, patch
 
 import pytest
@@ -16,6 +15,7 @@ from sgr_agent_core.server.endpoints import (
     _is_agent_id,
     agents_storage,
     create_chat_completion,
+    delete_agent,
     get_agent_state,
     get_agents_list,
     provide_clarification,
@@ -84,11 +84,9 @@ class TestChatCompletionEndpoint:
         mock_agent.id = "test_agent_12345678-1234-1234-1234-123456789012"
         mock_agent.streaming_generator.stream.return_value = iter(["chunk1", "chunk2"])
 
-        # Use actual async function instead of AsyncMock to avoid warnings
-        async def mock_execute():
-            pass
+        # Mock execute() as async method
+        mock_agent.execute = AsyncMock()
 
-        mock_agent.execute = mock_execute
         mock_agent_def = Mock()
         mock_factory.get_definitions_list.return_value = [mock_agent_def]
         mock_agent_def.name = "sgr_agent"
@@ -101,26 +99,17 @@ class TestChatCompletionEndpoint:
             model="sgr_agent", messages=[{"role": "user", "content": "Test task"}], stream=True
         )
 
-        # Mock asyncio.create_task to properly handle coroutines
-        with patch("sgr_agent_core.server.endpoints.asyncio.create_task") as mock_create_task:
-            # Schedule the coroutine via event loop to avoid 'never awaited' warnings
-            def mock_create_task_func(coro):
-                loop = asyncio.get_event_loop()
-                return loop.create_task(coro)
+        await create_chat_completion(request)
 
-            mock_create_task.side_effect = mock_create_task_func
+        # Verify agent was created and stored
+        mock_factory.create.assert_called_once()
+        call_args = mock_factory.create.call_args[0]
+        assert call_args[1] == [{"role": "user", "content": "Test task"}]
+        assert mock_agent.id in agents_storage
+        assert agents_storage[mock_agent.id] == mock_agent
 
-            await create_chat_completion(request)
-
-            # Verify agent was created and stored
-            mock_factory.create.assert_called_once()
-            call_args = mock_factory.create.call_args[0]
-            assert call_args[1] == [{"role": "user", "content": "Test task"}]
-            assert mock_agent.id in agents_storage
-            assert agents_storage[mock_agent.id] == mock_agent
-
-            # Verify execute task was created
-            mock_create_task.assert_called_once()
+        # Verify execute was called
+        mock_agent.execute.assert_called_once()
 
     @pytest.mark.asyncio
     async def test_create_agent_with_multiple_messages(self):
@@ -131,10 +120,8 @@ class TestChatCompletionEndpoint:
         mock_agent.id = "test_agent_12345678-1234-1234-1234-123456789012"
         mock_agent.streaming_generator.stream.return_value = iter(["chunk1"])
 
-        async def mock_execute():
-            pass
-
-        mock_agent.execute = mock_execute
+        # Mock execute() as async method
+        mock_agent.execute = AsyncMock()
 
         with patch("sgr_agent_core.server.endpoints.AgentFactory") as mock_factory:
             mock_agent_def = Mock()
@@ -153,21 +140,13 @@ class TestChatCompletionEndpoint:
                 stream=True,
             )
 
-            with patch("sgr_agent_core.server.endpoints.asyncio.create_task") as mock_create_task:
+            await create_chat_completion(request)
 
-                def mock_create_task_func(coro):
-                    loop = asyncio.get_event_loop()
-                    return loop.create_task(coro)
-
-                mock_create_task.side_effect = mock_create_task_func
-
-                await create_chat_completion(request)
-
-                mock_factory.create.assert_called_once()
-                call_args = mock_factory.create.call_args[0]
-                assert len(call_args[1]) == 4
-                assert call_args[1][0]["role"] == "system"
-                assert call_args[1][1]["role"] == "user"
+            mock_factory.create.assert_called_once()
+            call_args = mock_factory.create.call_args[0]
+            assert len(call_args[1]) == 4
+            assert call_args[1][0]["role"] == "system"
+            assert call_args[1][1]["role"] == "user"
 
     @pytest.mark.asyncio
     async def test_create_agent_with_multimodal_message(self):
@@ -178,10 +157,8 @@ class TestChatCompletionEndpoint:
         mock_agent.id = "test_agent_12345678-1234-1234-1234-123456789012"
         mock_agent.streaming_generator.stream.return_value = iter(["chunk1"])
 
-        async def mock_execute():
-            pass
-
-        mock_agent.execute = mock_execute
+        # Mock execute() as async method
+        mock_agent.execute = AsyncMock()
 
         with patch("sgr_agent_core.server.endpoints.AgentFactory") as mock_factory:
             mock_agent_def = Mock()
@@ -203,21 +180,13 @@ class TestChatCompletionEndpoint:
                 stream=True,
             )
 
-            with patch("sgr_agent_core.server.endpoints.asyncio.create_task") as mock_create_task:
+            await create_chat_completion(request)
 
-                def mock_create_task_func(coro):
-                    loop = asyncio.get_event_loop()
-                    return loop.create_task(coro)
-
-                mock_create_task.side_effect = mock_create_task_func
-
-                await create_chat_completion(request)
-
-                mock_factory.create.assert_called_once()
-                call_args = mock_factory.create.call_args[0]
-                assert len(call_args[1]) == 1
-                assert isinstance(call_args[1][0]["content"], list)
-                assert len(call_args[1][0]["content"]) == 2
+            mock_factory.create.assert_called_once()
+            call_args = mock_factory.create.call_args[0]
+            assert len(call_args[1]) == 1
+            assert isinstance(call_args[1][0]["content"], list)
+            assert len(call_args[1][0]["content"]) == 2
 
     @pytest.mark.asyncio
     async def test_non_streaming_request_raises_error(self):
@@ -464,6 +433,86 @@ class TestProvideClarificationEndpoint:
 
         assert exc_info.value.status_code == 500
         assert "Test error" in str(exc_info.value.detail)
+
+
+class TestDeleteAgentEndpoint:
+    """Tests for delete_agent endpoint."""
+
+    def setup_method(self):
+        """Setup for each test method."""
+        agents_storage.clear()
+
+    @pytest.mark.asyncio
+    async def test_delete_agent_success(self):
+        """Test successful deletion of a running agent."""
+        agent = create_test_agent(SGRAgent, task_messages=[{"role": "user", "content": "Test task"}])
+        agents_storage[agent.id] = agent
+
+        # Mock the cancel method
+        async def mock_cancel():
+            agent._context.state = AgentStatesEnum.CANCELLED
+
+        agent.cancel = mock_cancel
+
+        response = await delete_agent(agent.id)
+
+        assert response.agent_id == agent.id
+        assert response.deleted is True
+        assert response.final_state == "cancelled"
+        assert agent.id not in agents_storage
+
+    @pytest.mark.asyncio
+    async def test_delete_agent_not_found(self):
+        """Test deletion of non-existent agent."""
+        non_existent_id = "non_existent_agent_id"
+
+        with pytest.raises(HTTPException) as exc_info:
+            await delete_agent(non_existent_id)
+
+        assert exc_info.value.status_code == 404
+        assert "Agent not found" in str(exc_info.value.detail)
+
+    @pytest.mark.asyncio
+    async def test_delete_already_completed_agent(self):
+        """Test deletion of already completed agent."""
+        agent = create_test_agent(SGRAgent, task_messages=[{"role": "user", "content": "Test task"}])
+        agent._context.state = AgentStatesEnum.COMPLETED
+        agents_storage[agent.id] = agent
+
+        # Mock the cancel method (should still work for completed agents)
+        async def mock_cancel():
+            pass  # Already completed, cancel does nothing
+
+        agent.cancel = mock_cancel
+
+        response = await delete_agent(agent.id)
+
+        assert response.agent_id == agent.id
+        assert response.deleted is True
+        assert response.final_state == "completed"
+        assert agent.id not in agents_storage
+
+    @pytest.mark.asyncio
+    async def test_delete_removes_from_storage(self):
+        """Test that delete removes agent from storage."""
+        agent1 = create_test_agent(SGRAgent, task_messages=[{"role": "user", "content": "Task 1"}])
+        agent2 = create_test_agent(SGRAgent, task_messages=[{"role": "user", "content": "Task 2"}])
+
+        agents_storage[agent1.id] = agent1
+        agents_storage[agent2.id] = agent2
+
+        async def mock_cancel():
+            agent1._context.state = AgentStatesEnum.CANCELLED
+
+        agent1.cancel = mock_cancel
+
+        assert len(agents_storage) == 2
+
+        await delete_agent(agent1.id)
+
+        assert len(agents_storage) == 1
+        assert agent1.id not in agents_storage
+        assert agent2.id in agents_storage
 
 
 class TestAgentStorageIntegration:
