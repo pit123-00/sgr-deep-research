@@ -15,58 +15,59 @@ The library includes extensible tools for search, reasoning, and clarification, 
 
 ## Quick Start
 
+### Running with Docker
+
+The fastest way to get started is using Docker:
+
+```bash
+# Clone the repository
+git clone https://github.com/vamplabai/sgr-agent-core.git
+cd sgr-agent-core
+
+# Create directories with write permissions for all
+sudo mkdir -p logs reports
+sudo chmod 777 logs reports
+
+# Copy and edit the configuration file
+cp examples/sgr_deep_research/config.yaml.example examples/sgr_deep_research/config.yaml
+# Edit examples/sgr_deep_research/config.yaml and set your API keys
+
+# Run the container
+docker run --rm -i \
+  --name sgr-agent \
+  -p 8010:8010 \
+  -v $(pwd)/examples/sgr_deep_research:/app/examples/sgr_deep_research:ro \
+  -v $(pwd)/logs:/app/logs \
+  -v $(pwd)/reports:/app/reports \
+  ghcr.io/vamplabai/sgr-agent-core:latest \
+  --config-file /app/examples/sgr_deep_research/config.yaml \
+  --host 0.0.0.0 \
+  --port 8010
+```
+
+The API server will be available at `http://localhost:8010`. Interactive API documentation (Swagger UI) is available at `http://localhost:8010/docs`.
+
 ### Installation
 
-Install SGR Agent Core via pip:
+If you want to use SGR Agent Core as a Python library (framework):
 
 ```bash
 pip install sgr-agent-core
 ```
 
-Or use Docker:
+See the [Installation Guide](installation.md) for detailed instructions and the [Using as Library](../framework/first-steps.md) guide to get started.
 
-```bash
-docker pull ghcr.io/vamplabai/sgr-agent-core:latest
-```
+### Next Steps
 
-See the [Installation Guide](installation.md) for detailed instructions.
-
-### Quick Example
-
-```python
-import asyncio
-from sgr_agent_core import AgentDefinition, AgentFactory
-from sgr_agent_core.agents import SGRToolCallingAgent
-import sgr_agent_core.tools as tools
-
-async def main():
-    agent_def = AgentDefinition(
-        name="my_agent",
-        base_class=SGRToolCallingAgent,
-        tools=[tools.GeneratePlanTool, tools.FinalAnswerTool],
-        llm={
-            "api_key": "your-api-key",
-            "base_url": "https://api.openai.com/v1",
-        },
-    )
-
-    agent = await AgentFactory.create(
-        agent_def=agent_def,
-        task_messages=[{"role": "user", "content": "Research AI trends"}],
-    )
-
-    result = await agent.execute()
-    print(result)
-
-if __name__ == "__main__":
-    asyncio.run(main())
-```
+- **[Using as Library](../framework/first-steps.md)** — Learn how to use SGR Agent Core as a Python library
+- **[API Server Quick Start](../sgr-api/SGR-Quick-Start.md)** — Get started with the REST API service
 
 ## Documentation
 
 - **[Installation](installation.md)** — Detailed installation instructions for pip and Docker
 - **[Agent Core Framework](../framework/main-concepts.md)** — Understand the core concepts and architecture
-- **[SGR API Service](../sgr-api/SGR-Quick-Start.md)** — Get started with the REST API service
+- **[Using as Library](../framework/first-steps.md)** — Learn how to use SGR Agent Core as a Python library
+- **[API Server Quick Start](../sgr-api/SGR-Quick-Start.md)** — Get started with the REST API service
 
 ## Contact & Community
 
