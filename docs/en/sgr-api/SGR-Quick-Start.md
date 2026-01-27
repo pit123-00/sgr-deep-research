@@ -1,3 +1,5 @@
+This guide will help you quickly get started with running SGR Agent Core as a REST API service.
+
 ## Setup Configuration Files
 
 1. **Create config.yaml from the template:**
