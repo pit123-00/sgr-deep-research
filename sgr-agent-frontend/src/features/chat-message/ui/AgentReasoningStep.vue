@@ -1,5 +1,5 @@
 <template>
-  <div class="agent-reasoning-step">
+  <div class="agent-reasoning-step" :class="{ 'agent-reasoning-step--collapsed': isCollapsed }">
     <div class="agent-reasoning-step__header" @click="toggleCollapsed">
       <div class="agent-reasoning-step__title">
         <span class="agent-reasoning-step__reasoning">{{ step.reasoning }}</span>
@@ -7,12 +7,12 @@
           getToolDisplayName(step.tool_name_discriminator)
         }}</span>
       </div>
-      <div class="agent-reasoning-step__toggle">
-        <AppIconChevronDown24 :class="{ 'agent-reasoning-step__chevron--rotated': !isCollapsed }" />
+      <div v-if="hasContent" class="agent-reasoning-step__toggle">
+        <AppIconChevronDown24 :class="{ 'agent-reasoning-step__chevron--rotated': isCollapsed }" />
       </div>
     </div>
 
-    <div v-if="!isCollapsed" class="agent-reasoning-step__content">
+    <div v-if="!isCollapsed && hasContent" class="agent-reasoning-step__content">
       <!-- Web Search Tool -->
       <div
         v-if="step.tool_name_discriminator === 'websearchtool'"
@@ -103,7 +103,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref } from 'vue'
+import { ref, computed } from 'vue'
 import AppIconChevronDown24 from '@/shared/ui/icons/AppIconChevronDown24.vue'
 
 interface ReasoningStep {
@@ -118,7 +118,7 @@ interface ReasoningStep {
   status?: string
 }
 
-defineProps<{
+const props = defineProps<{
   step: ReasoningStep
 }>()
 
@@ -127,6 +127,19 @@ const isCollapsed = ref(true)
 const toggleCollapsed = () => {
   isCollapsed.value = !isCollapsed.value
 }
+
+// Check if content is empty
+const hasContent = computed(() => {
+  return !!(
+    props.step.query ||
+    (props.step.urls && props.step.urls.length > 0) ||
+    props.step.title ||
+    props.step.content ||
+    (props.step.completed_steps && props.step.completed_steps.length > 0) ||
+    props.step.status
+  )
+})
+</script>
 
 const getToolDisplayName = (toolName: string): string => {
   const toolNames: Record<string, string> = {

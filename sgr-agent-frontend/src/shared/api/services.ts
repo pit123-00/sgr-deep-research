@@ -56,9 +56,23 @@ export const agentsService = {
     clarifications: string,
     onProgress: (event: AxiosProgressEvent) => void,
   ): Promise<void> => {
+    const requestBody = {
+      messages: [
+        {
+          role: 'user' as const,
+          content: clarifications,
+        },
+      ],
+    }
+
+    // Log request body for debugging
+    if (import.meta.env.DEV) {
+      console.log('📤 Sending clarification request:', JSON.stringify(requestBody, null, 2))
+    }
+
     return apiClient.post(
       API_ENDPOINTS.AGENT_CLARIFICATION(agentId),
-      { clarifications },
+      requestBody,
       {
         responseType: 'text',
         headers: {

@@ -1,5 +1,5 @@
 <template>
-  <div class="agent-reasoning-step agent-reasoning-step--reasoning">
+  <div class="agent-reasoning-step agent-reasoning-step--reasoning" :class="{ 'agent-reasoning-step--collapsed': isCollapsed, 'agent-reasoning-step--empty': !hasContent }">
     <div class="agent-reasoning-step__header" @click="toggleCollapsed">
       <div class="agent-reasoning-step__title">
         <div class="agent-reasoning-step__title-main">
@@ -11,12 +11,12 @@
         </div>
         <span class="agent-reasoning-step__tool-name">REASONINGTOOL</span>
       </div>
-      <div class="agent-reasoning-step__toggle">
-        <AppIconChevronDown24 :class="{ 'agent-reasoning-step__chevron--rotated': !isCollapsed }" />
+      <div v-if="hasContent" class="agent-reasoning-step__toggle">
+        <AppIconChevronDown24 :class="{ 'agent-reasoning-step__chevron--rotated': isCollapsed }" />
       </div>
     </div>
 
-    <div v-if="!isCollapsed" class="agent-reasoning-step__content">
+    <div v-if="!isCollapsed && hasContent" class="agent-reasoning-step__content">
       <div class="agent-reasoning-step__details">
         <!-- Current Situation -->
         <div v-if="data.current_situation" class="agent-reasoning-step__field">
@@ -90,6 +90,16 @@ const isCollapsed = ref(true)
 const toggleCollapsed = () => {
   isCollapsed.value = !isCollapsed.value
 }
+
+// Check if content is empty
+const hasContent = computed(() => {
+  return !!(
+    props.data.current_situation ||
+    props.data.plan_status ||
+    (props.data.reasoning_steps && props.data.reasoning_steps.length > 0) ||
+    (props.data.remaining_steps && props.data.remaining_steps.length > 0)
+  )
+})
 
 // Generate preview text for collapsed state
 const previewText = computed(() => {
