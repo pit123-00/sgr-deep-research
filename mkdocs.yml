@@ -1,8 +1,13 @@
 site_name: SGR Agent Core
 site_url: https://vamplabai.github.io/sgr-agent-core/
 #site_url: http://localhost:8000/
+site_description: Open-source agentic framework for building intelligent research agents using Schema-Guided Reasoning. Multiple agent types, extensible architecture, OpenAI-compatible API.
 repo_url: https://github.com/vamplabai/sgr-agent-core
 repo_name: vamplabAI/sgr-agent-core
+
+# OpenGraph image configuration
+og_image: https://vamplabai.github.io/sgr-agent-core/assets/images/intro.jpg
+og_image_alt: SGR Agent Core - Schema-Guided Reasoning Framework
 
 plugins:
   - search
@@ -61,6 +66,12 @@ theme:
     - content.code.copy
     - content.code.annotate
     - content.code.highlight
+  extra:
+    social:
+      - icon: fontawesome/brands/github
+        link: https://github.com/vamplabai/sgr-agent-core
+      - icon: fontawesome/brands/telegram
+        link: https://t.me/sgragentcore
 nav:
   - Get Started:
       - Welcome to SGR Agent: getting-started/index.md
