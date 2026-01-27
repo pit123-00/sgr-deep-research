@@ -59,6 +59,27 @@
   border-top: 1px solid #e5e7eb;
 }
 
+/* Reduce bottom margin when content is collapsed to avoid extra space */
+.agent-reasoning-step--collapsed {
+  margin-bottom: 0;
+}
+
+/* Remove padding, border and margin when content is empty */
+.agent-reasoning-step--empty .agent-reasoning-step__content {
+  padding: 0;
+  min-height: 0;
+  border-top: none;
+}
+
+.agent-reasoning-step--empty {
+  margin-bottom: 0;
+}
+
+/* Remove margin-bottom for expanded accordions with empty content to avoid extra space */
+.agent-reasoning-step--empty:not(.agent-reasoning-step--collapsed) {
+  margin-bottom: 0;
+}
+
 .agent-reasoning-step__details {
   display: flex;
   flex-direction: column;
@@ -87,7 +108,7 @@
 
 /* Streaming specific styles */
 .agent-reasoning-step__streaming {
-  margin-bottom: 16px;
+  margin-bottom: 0;
   border: 2px solid #3b82f6;
   border-radius: 8px;
   overflow: hidden;

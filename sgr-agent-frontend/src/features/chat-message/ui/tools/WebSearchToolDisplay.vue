@@ -1,13 +1,13 @@
 <template>
-  <div class="agent-reasoning-step">
+  <div class="agent-reasoning-step" :class="{ 'agent-reasoning-step--collapsed': isCollapsed, 'agent-reasoning-step--empty': !hasContent }">
     <div class="agent-reasoning-step__header" @click="toggleCollapsed">
       <div class="agent-reasoning-step__title">
         <span class="agent-reasoning-step__reasoning">{{ data.reasoning }}</span>
         <span class="agent-reasoning-step__tool-name">WEBSEARCHTOOL</span>
       </div>
-      <div class="agent-reasoning-step__toggle">
+      <div v-if="hasContent" class="agent-reasoning-step__toggle">
         <AppIconChevronDown24
-          :class="{ 'agent-reasoning-step__chevron--rotated': !isCollapsed }"
+          :class="{ 'agent-reasoning-step__chevron--rotated': isCollapsed }"
         />
       </div>
     </div>
@@ -65,7 +65,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref } from 'vue'
+import { ref, computed } from 'vue'
 import AppIconChevronDown24 from '@/shared/ui/icons/AppIconChevronDown24.vue'
 
 interface SearchResult {
@@ -84,11 +84,21 @@ interface Props {
   }
 }
 
-defineProps<Props>()
+const props = defineProps<Props>()
 
 const isCollapsed = ref(true)
 
 const toggleCollapsed = () => {
   isCollapsed.value = !isCollapsed.value
 }
+
+// Check if content is empty
+const hasContent = computed(() => {
+  return !!(
+    props.data.query ||
+    props.data.max_results !== undefined ||
+    props.data.scrape_content !== undefined ||
+    (props.data.results && props.data.results.length > 0)
+  )
+})
 </script>

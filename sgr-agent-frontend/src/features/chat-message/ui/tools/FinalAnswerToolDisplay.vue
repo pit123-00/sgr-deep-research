@@ -1,18 +1,18 @@
 <template>
-  <div class="agent-reasoning-step agent-reasoning-step--final-answer">
+  <div class="agent-reasoning-step agent-reasoning-step--final-answer" :class="{ 'agent-reasoning-step--collapsed': isCollapsed }">
     <div class="agent-reasoning-step__header" @click="toggleCollapsed">
       <div class="agent-reasoning-step__title">
         <span class="agent-reasoning-step__reasoning">✅ Final Answer</span>
         <span class="agent-reasoning-step__tool-name">FINALANSWERTOOL</span>
       </div>
-      <div class="agent-reasoning-step__toggle">
+      <div v-if="hasContent" class="agent-reasoning-step__toggle">
         <AppIconChevronDown24
-          :class="{ 'agent-reasoning-step__chevron--rotated': !isCollapsed }"
+          :class="{ 'agent-reasoning-step__chevron--rotated': isCollapsed }"
         />
       </div>
     </div>
 
-    <div v-if="!isCollapsed" class="agent-reasoning-step__content">
+    <div v-if="!isCollapsed && hasContent" class="agent-reasoning-step__content">
       <div class="agent-reasoning-step__details">
         <!-- Completed Steps -->
         <div v-if="data.completed_steps && data.completed_steps.length" class="agent-reasoning-step__field">
@@ -48,7 +48,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref } from 'vue'
+import { ref, computed } from 'vue'
 import AppIconChevronDown24 from '@/shared/ui/icons/AppIconChevronDown24.vue'
 import { MarkdownRenderer } from '@/shared/ui'
 
@@ -61,11 +61,20 @@ interface Props {
   }
 }
 
-defineProps<Props>()
+const props = defineProps<Props>()
 
 const isCollapsed = ref(false) // Start expanded to show final answer immediately
 
 const toggleCollapsed = () => {
   isCollapsed.value = !isCollapsed.value
 }
+
+// Check if content is empty
+const hasContent = computed(() => {
+  return !!(
+    (props.data.completed_steps && props.data.completed_steps.length > 0) ||
+    props.data.answer ||
+    props.data.status
+  )
+})
 </script>

@@ -1,35 +1,35 @@
 <template>
   <!-- Check if this is extracted page content (should be collapsible) -->
-  <div v-if="isExtractedPageContent" class="agent-reasoning-step">
+  <div v-if="isExtractedPageContent" class="agent-reasoning-step" :class="{ 'agent-reasoning-step--collapsed': isCollapsed, 'agent-reasoning-step--empty': !hasContent }">
     <div class="agent-reasoning-step__header" @click="toggleCollapsed">
       <div class="agent-reasoning-step__title">
         <span class="agent-reasoning-step__reasoning">Extracted Page Content:</span>
       </div>
-      <div class="agent-reasoning-step__toggle">
+      <div v-if="hasContent" class="agent-reasoning-step__toggle">
         <AppIconChevronDown24
-          :class="{ 'agent-reasoning-step__chevron--rotated': !isCollapsed }"
+          :class="{ 'agent-reasoning-step__chevron--rotated': isCollapsed }"
         />
       </div>
     </div>
-    <div v-if="!isCollapsed" class="agent-reasoning-step__content">
+    <div v-if="!isCollapsed && hasContent" class="agent-reasoning-step__content">
       <div class="agent-reasoning-step__string-content">
         <MarkdownRenderer :content="content" />
       </div>
     </div>
   </div>
   <!-- Check if this is search results (should be collapsible) -->
-  <div v-else-if="isSearchResults" class="agent-reasoning-step">
+  <div v-else-if="isSearchResults" class="agent-reasoning-step" :class="{ 'agent-reasoning-step--collapsed': isCollapsed, 'agent-reasoning-step--empty': !hasContent }">
     <div class="agent-reasoning-step__header" @click="toggleCollapsed">
       <div class="agent-reasoning-step__title">
         <span class="agent-reasoning-step__reasoning">Search Results:</span>
       </div>
-      <div class="agent-reasoning-step__toggle">
+      <div v-if="hasContent" class="agent-reasoning-step__toggle">
         <AppIconChevronDown24
-          :class="{ 'agent-reasoning-step__chevron--rotated': !isCollapsed }"
+          :class="{ 'agent-reasoning-step__chevron--rotated': isCollapsed }"
         />
       </div>
     </div>
-    <div v-if="!isCollapsed" class="agent-reasoning-step__content">
+    <div v-if="!isCollapsed && hasContent" class="agent-reasoning-step__content">
       <div class="agent-reasoning-step__string-content">
         <MarkdownRenderer :content="content" />
       </div>
@@ -57,6 +57,20 @@ const isCollapsed = ref(true)
 const toggleCollapsed = () => {
   isCollapsed.value = !isCollapsed.value
 }
+
+// Check if content has actual data (not just headers)
+const hasContent = computed(() => {
+  if (!props.content || props.content.trim() === '') return false
+  
+  // Remove headers and check if there's actual content
+  const contentWithoutHeaders = props.content
+    .replace(/Search Query:/gi, '')
+    .replace(/Search Results:/gi, '')
+    .replace(/Extracted Page Content:/gi, '')
+    .trim()
+  
+  return contentWithoutHeaders.length > 0
+})
 
 const isExtractedPageContent = computed(() => {
   return props.content.includes('Extracted Page Content:')
