@@ -6,6 +6,10 @@ SGR Agent Core provides a comprehensive REST API that is fully compatible with O
 http://localhost:8010
 ```
 
+## API Documentation
+
+Interactive API documentation (Swagger UI) is available at `http://localhost:8010/docs`. You can explore all endpoints, test requests, and view request/response schemas directly in your browser.
+
 ## Authentication
 
 Authentication is not supported by the API. For production deployments, use a reverse proxy with authentication configured.

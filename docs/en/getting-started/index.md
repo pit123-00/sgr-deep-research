@@ -45,17 +45,17 @@ docker run --rm -i \
   --port 8010
 ```
 
-The API server will be available at `http://localhost:8010`.
+The API server will be available at `http://localhost:8010`. Interactive API documentation (Swagger UI) is available at `http://localhost:8010/docs`.
 
 ### Installation
 
-For other installation methods:
+If you want to use SGR Agent Core as a Python library (framework):
 
 ```bash
 pip install sgr-agent-core
 ```
 
-See the [Installation Guide](installation.md) for detailed instructions.
+See the [Installation Guide](installation.md) for detailed instructions and the [Using as Library](../framework/first-steps.md) guide to get started.
 
 ### Next Steps
 
