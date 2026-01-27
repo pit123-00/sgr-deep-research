@@ -64,12 +64,12 @@ export const agentsService = {
         },
       ],
     }
-    
+
     // Log request body for debugging
     if (import.meta.env.DEV) {
       console.log('📤 Sending clarification request:', JSON.stringify(requestBody, null, 2))
     }
-    
+
     return apiClient.post(
       API_ENDPOINTS.AGENT_CLARIFICATION(agentId),
       requestBody,

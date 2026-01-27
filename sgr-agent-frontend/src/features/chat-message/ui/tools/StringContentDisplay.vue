@@ -61,14 +61,14 @@ const toggleCollapsed = () => {
 // Check if content has actual data (not just headers)
 const hasContent = computed(() => {
   if (!props.content || props.content.trim() === '') return false
-  
+
   // Remove headers and check if there's actual content
   const contentWithoutHeaders = props.content
     .replace(/Search Query:/gi, '')
     .replace(/Search Results:/gi, '')
     .replace(/Extracted Page Content:/gi, '')
     .trim()
-  
+
   return contentWithoutHeaders.length > 0
 })
 
