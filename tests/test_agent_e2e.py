@@ -245,42 +245,39 @@ def create_mock_openai_client_for_sgr_tool_calling_agent(action_tool_1: Type, ac
     action_count = {"count": 0}
 
     def mock_stream(**kwargs):
-        """Mock stream function that determines reasoning vs action phase.
-
-        Checks the first tool name in the tools list to determine the
-        phase.
-        """
+        """Mock stream function that returns appropriate tool based on tool
+        name."""
         tools_param = kwargs.get("tools", [])
 
-        # Check first tool name - if it's ReasoningTool, it's reasoning phase
+        # Validate that tools is a list
+        if not isinstance(tools_param, list):
+            raise TypeError(
+                f"SGRToolCallingAgent._prepare_tools() must return a list, "
+                f"but got {type(tools_param).__name__}. "
+                f"Override _prepare_tools() to return list instead of NextStepToolStub."
+            )
+
+        # Get tool name from first tool in the list
         tool_name = None
-        if isinstance(tools_param, list) and tools_param:
+        if tools_param:
             first_tool = tools_param[0]
             if isinstance(first_tool, dict):
                 tool_name = first_tool.get("function", {}).get("name")
 
-        is_reasoning = tool_name == ReasoningTool.tool_name
-
-        if is_reasoning:
+        # Return appropriate tool based on name
+        if tool_name == ReasoningTool.tool_name:
             reasoning_count["count"] += 1
             tool = reasoning_tools[reasoning_count["count"] - 1]
-            call_id = f"{reasoning_count['count']}-reasoning"
         else:
-            # Validate that tools is a list (for action phase)
-            if not isinstance(tools_param, list):
-                raise TypeError(
-                    f"SGRToolCallingAgent._prepare_tools() must return a list, "
-                    f"but got {type(tools_param).__name__}. "
-                    f"Override _prepare_tools() to return list instead of NextStepToolStub."
-                )
+            # Action tool - use counter to select from action_tools list
             action_count["count"] += 1
             tool = action_tools[action_count["count"] - 1]
-            call_id = f"{action_count['count']}-action"
 
+        # call_id is not used by agent, just needed for valid OpenAI API structure
         return MockStream(
             final_completion_data={
                 "content": None,
-                "tool_calls": [_create_tool_call(tool, call_id)],
+                "tool_calls": [_create_tool_call(tool, "mock-call-id")],
             }
         )
 
