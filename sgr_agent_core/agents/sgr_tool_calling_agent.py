@@ -66,7 +66,7 @@ class SGRToolCallingAgent(BaseAgent):
                 ],
             }
         )
-        tool_call_result = await reasoning(self._context)
+        tool_call_result = await reasoning(self._context, self.config)
         self.streaming_generator.add_tool_call(
             f"{self._context.iteration}-reasoning", reasoning.tool_name, tool_call_result
         )
